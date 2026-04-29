@@ -8,6 +8,20 @@
       "when": 1777468598347,
       "tag": "0000_shallow_kid_colt",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777474636947,
+      "tag": "0001_familiar_manta",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777475708007,
+      "tag": "0002_demonic_inertia",
+      "breakpoints": true
     }
   ]
 }

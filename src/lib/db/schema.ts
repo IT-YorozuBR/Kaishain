@@ -28,18 +28,22 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const employees = pgTable('employees', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: text('name').notNull(),
-  email: text('email'),
-  registration: text('registration'),
-  position: text('position'),
-  department: text('department'),
-  managerId: uuid('manager_id').references(() => users.id),
-  active: boolean('active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+export const employees = pgTable(
+  'employees',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    email: text('email'),
+    registration: text('registration'),
+    position: text('position'),
+    department: text('department'),
+    managerId: uuid('manager_id').references(() => users.id),
+    active: boolean('active').notNull().default(true),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (t) => [unique('employees_registration_unique').on(t.registration)],
+);
 
 export const checklistItems = pgTable('checklist_items', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -47,6 +51,8 @@ export const checklistItems = pgTable('checklist_items', {
   description: text('description'),
   order: integer('order').notNull(),
   active: boolean('active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export const evaluations = pgTable(

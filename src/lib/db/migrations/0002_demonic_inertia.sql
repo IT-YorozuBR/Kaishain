@@ -1,0 +1,1 @@
+ALTER TABLE "employees" ADD CONSTRAINT "employees_registration_unique" UNIQUE("registration");
