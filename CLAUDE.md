@@ -43,13 +43,14 @@ O nome vem do japonês **会社員 (kaishain)**, "funcionário de empresa".
 
 Três papéis principais:
 
-| Papel       | Acessa                                                      | Não acessa                          |
-| ----------- | ----------------------------------------------------------- | ----------------------------------- |
-| `RH`        | Cadastros, importação, relatórios, todos os históricos      | —                                   |
-| `GESTOR`    | Tela de avaliação dos seus liderados, histórico do seu time | Cadastros gerais, dados de outros times |
-| `ADMIN`     | Tudo (super-usuário técnico)                                | —                                   |
+| Papel    | Acessa                                                      | Não acessa                              |
+| -------- | ----------------------------------------------------------- | --------------------------------------- |
+| `RH`     | Cadastros, importação, relatórios, todos os históricos      | —                                       |
+| `GESTOR` | Tela de avaliação dos seus liderados, histórico do seu time | Cadastros gerais, dados de outros times |
+| `ADMIN`  | Tudo (super-usuário técnico)                                | —                                       |
 
 Regras-chave:
+
 - Um `GESTOR` **só** consegue ler/escrever avaliações para funcionários onde `funcionario.gestor_id = usuario.id`.
 - Toda checagem de permissão acontece **no server** (server actions / route handlers). Nunca confiar no cliente.
 - A UI esconde o que o usuário não pode acessar, mas isso é decoração — a autoridade é o backend.
@@ -68,6 +69,7 @@ Tabelas principais (snake_case no banco, camelCase no código TS):
 - **`audit_logs`** (opcional, fase 2): rastreio de quem alterou o quê.
 
 Observações:
+
 - Datas de avaliação devem ser armazenadas como `DATE` (sem hora) para facilitar a regra "uma por dia".
 - Toda operação de escrita passa por uma camada de serviço que valida o papel do usuário e a propriedade do recurso.
 
@@ -161,7 +163,7 @@ pnpm db:studio        # abre Drizzle Studio
 6. **Datas**: trabalhar sempre em UTC no banco; converter para `America/Sao_Paulo` apenas na camada de apresentação.
 7. **Ao importar planilhas**, valide cada linha com Zod e retorne um relatório das linhas que falharam — nunca aborte a importação inteira por uma linha ruim sem comunicar.
 8. **Não introduza dependências novas sem justificar.** Se já existe algo no stack que resolve, use o que está.
-9. **Comentários**: explique o *porquê*, não o *o quê*. Código óbvio não precisa de comentário.
+9. **Comentários**: explique o _porquê_, não o _o quê_. Código óbvio não precisa de comentário.
 10. **Em caso de dúvida sobre regra de negócio**, pergunte antes de inventar — especialmente em torno de quem pode avaliar quem, e o que acontece com avaliações de dias anteriores.
 
 ---
