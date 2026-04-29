@@ -56,7 +56,7 @@ export function EvaluationForm({
           {checklistItems.map((item) => (
             <label
               key={item.id}
-              className="bg-card flex gap-3 rounded-lg border p-3 text-sm shadow-sm"
+              className="flex gap-3 rounded-lg border bg-white p-3 text-sm shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50/30"
             >
               <input type="hidden" name="checklistItemId" value={item.id} />
               <input
@@ -64,7 +64,7 @@ export function EvaluationForm({
                 name="checkedChecklistItemId"
                 value={item.id}
                 defaultChecked={checkedChecklistItems.has(item.id)}
-                className="accent-primary mt-1 size-4"
+                className="mt-1 size-4 accent-emerald-600"
               />
               <span className="grid gap-1">
                 <span className="font-medium">{item.label}</span>
@@ -82,7 +82,7 @@ export function EvaluationForm({
 
       <div className="grid gap-2">
         <Label htmlFor="score">Nota</Label>
-        <div className="flex max-w-48 items-center gap-2">
+        <div className="flex max-w-48 items-center gap-2 rounded-lg bg-muted/50 p-2">
           <Button
             type="button"
             variant="outline"
@@ -133,8 +133,16 @@ export function EvaluationForm({
         ) : null}
       </div>
 
-      {state.error ? <p className="text-destructive text-sm">{state.error}</p> : null}
-      {state.success ? <p className="text-muted-foreground text-sm">{state.success}</p> : null}
+      {state.error ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {state.error}
+        </p>
+      ) : null}
+      {state.success ? (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          {state.success}
+        </p>
+      ) : null}
 
       <Button type="submit" className="w-fit" disabled={pending}>
         <Save data-icon="inline-start" />

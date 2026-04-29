@@ -11,8 +11,8 @@ import { Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { StatusBadge } from '@/components/layout/StatusBadge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -74,9 +74,9 @@ const columns = [
     header: 'Status',
     cell: (info) =>
       info.getValue() ? (
-        <Badge variant="outline">Ativo</Badge>
+        <StatusBadge status="active">Ativo</StatusBadge>
       ) : (
-        <Badge variant="secondary">Inativo</Badge>
+        <StatusBadge status="inactive">Inativo</StatusBadge>
       ),
   }),
   columnHelper.display({
@@ -98,6 +98,19 @@ export function EmployeesTable({ employees, managers }: EmployeesTableProps) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
   const [managerFilter, setManagerFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+
+  const departments = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          employees
+            .map((employee) => employee.department)
+            .filter((department): department is string => Boolean(department)),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [employees],
+  );
 
   const filteredEmployees = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -115,6 +128,10 @@ export function EmployeesTable({ employees, managers }: EmployeesTableProps) {
         return false;
       }
 
+      if (departmentFilter !== 'all' && employee.department !== departmentFilter) {
+        return false;
+      }
+
       if (!normalizedSearch) {
         return true;
       }
@@ -124,7 +141,7 @@ export function EmployeesTable({ employees, managers }: EmployeesTableProps) {
         (employee.email?.toLowerCase().includes(normalizedSearch) ?? false)
       );
     });
-  }, [employees, managerFilter, search, statusFilter]);
+  }, [departmentFilter, employees, managerFilter, search, statusFilter]);
 
   // TanStack Table intentionally returns stateful APIs that React Compiler cannot memoize.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -141,8 +158,8 @@ export function EmployeesTable({ employees, managers }: EmployeesTableProps) {
   });
 
   return (
-    <div className="grid gap-4">
-      <div className="flex flex-wrap items-end gap-3">
+    <div className="grid gap-4 rounded-xl border bg-card p-4 shadow-sm">
+      <div className="flex flex-wrap items-end gap-3 rounded-lg bg-muted/50 p-3">
         <div className="grid min-w-56 gap-1">
           <Label htmlFor="search">Buscar</Label>
           <Input
@@ -190,9 +207,29 @@ export function EmployeesTable({ employees, managers }: EmployeesTableProps) {
             </SelectContent>
           </Select>
         </div>
+
+        <div className="grid gap-1">
+          <Label>Departamento</Label>
+          <Select
+            value={departmentFilter}
+            onValueChange={(value) => setDepartmentFilter(value ?? 'all')}
+          >
+            <SelectTrigger className="w-52">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os departamentos</SelectItem>
+              {departments.map((department) => (
+                <SelectItem key={department} value={department}>
+                  {department}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

@@ -5,8 +5,11 @@ import { ArrowLeft } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { formatSaoPauloDisplayDate, getSaoPauloTodayDateString } from '@/lib/date';
 import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EvaluationForm } from '@/components/forms/EvaluationForm';
+import { AppShell } from '@/components/layout/AppShell';
+import { FormCard } from '@/components/layout/FormCard';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { StatusBadge } from '@/components/layout/StatusBadge';
 import { NotFoundError, UnauthorizedError } from '@/lib/errors';
 import { getEvaluationFormData } from '@/server/services/evaluations';
 
@@ -44,30 +47,29 @@ export default async function AvaliarFuncionarioPage({ params }: AvaliarFunciona
   const { employee, checklistItems, evaluation } = formData;
 
   return (
-    <main className="bg-background min-h-dvh px-4 py-8">
-      <div className="mx-auto grid w-full max-w-3xl gap-6">
+    <AppShell>
+      <div className="grid max-w-3xl gap-6">
         <Link href="/avaliar" className={buttonVariants({ variant: 'ghost', className: 'w-fit' })}>
           <ArrowLeft data-icon="inline-start" />
           Voltar
         </Link>
 
-        <header className="grid gap-2 border-b pb-6">
-          <h1 className="text-2xl font-semibold tracking-normal">{employee.name}</h1>
-          <p className="text-muted-foreground text-sm">
-            Avaliacao de {formatSaoPauloDisplayDate(today)}. Pode ser editada ate 23:59 em
-            America/Sao_Paulo.
-          </p>
-        </header>
+        <PageHeader
+          title={employee.name}
+          description={`Avaliacao de ${formatSaoPauloDisplayDate(today)}. Pode ser editada ate 23:59 em America/Sao_Paulo.`}
+          meta={
+            evaluation ? (
+              <StatusBadge status="success">Avaliacao existente</StatusBadge>
+            ) : (
+              <StatusBadge status="pending">Pendente</StatusBadge>
+            )
+          }
+        />
 
-        <Card className="rounded-lg">
-          <CardHeader>
-            <CardTitle>Avaliacao diaria</CardTitle>
-            <CardDescription>
-              Preencha o checklist, informe a nota de 0 a 10 e registre uma observacao se
-              necessario.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        <FormCard
+          title="Avaliacao diaria"
+          description="Preencha o checklist, informe a nota de 0 a 10 e registre uma observacao se necessario."
+        >
             <EvaluationForm
               employeeId={employee.id}
               initialScore={evaluation?.score ?? 0}
@@ -75,9 +77,8 @@ export default async function AvaliarFuncionarioPage({ params }: AvaliarFunciona
               checklistItems={checklistItems}
               checklistResults={evaluation?.checklistResults ?? []}
             />
-          </CardContent>
-        </Card>
+        </FormCard>
       </div>
-    </main>
+    </AppShell>
   );
 }

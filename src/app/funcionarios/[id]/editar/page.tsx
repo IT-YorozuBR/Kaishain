@@ -2,7 +2,10 @@ import { notFound, redirect } from 'next/navigation';
 
 import { DeactivateButton } from '@/components/forms/DeactivateButton';
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
-import { Badge } from '@/components/ui/badge';
+import { AppShell } from '@/components/layout/AppShell';
+import { FormCard } from '@/components/layout/FormCard';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { StatusBadge } from '@/components/layout/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getCurrentUser } from '@/lib/auth';
 import { NotFoundError } from '@/lib/errors';
@@ -41,33 +44,32 @@ export default async function EditarFuncionarioPage({ params }: EditarFuncionari
   const updateAction = updateEmployeeAction.bind(null, id);
 
   return (
-    <main className="bg-background min-h-dvh px-4 py-8">
-      <div className="mx-auto grid w-full max-w-2xl gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-4">
-            <CardTitle>Editar funcionario</CardTitle>
-            {!employee.active ? <Badge variant="secondary">Inativo</Badge> : null}
-          </CardHeader>
-          <CardContent>
-            <EmployeeForm
-              managers={managers}
-              defaultValues={{
-                name: employee.name,
-                email: employee.email,
-                registration: employee.registration,
-                position: employee.position,
-                department: employee.department,
-                managerId: employee.managerId,
-              }}
-              action={updateAction}
-            />
-          </CardContent>
-        </Card>
+    <AppShell>
+      <div className="grid max-w-3xl gap-6">
+        <PageHeader
+          title="Editar funcionario"
+          description="Atualize os dados cadastrais e a relacao com o gestor."
+          meta={!employee.active ? <StatusBadge status="inactive">Inativo</StatusBadge> : null}
+        />
+        <FormCard title="Dados do funcionario">
+          <EmployeeForm
+            managers={managers}
+            defaultValues={{
+              name: employee.name,
+              email: employee.email,
+              registration: employee.registration,
+              position: employee.position,
+              department: employee.department,
+              managerId: employee.managerId,
+            }}
+            action={updateAction}
+          />
+        </FormCard>
 
         {employee.active ? (
-          <Card className="border-destructive/30">
+          <Card className="border-red-200 bg-red-50/40">
             <CardHeader>
-              <CardTitle className="text-base text-destructive">Zona de perigo</CardTitle>
+              <CardTitle className="text-base text-red-700">Zona de perigo</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap items-center justify-between gap-4">
               <p className="max-w-md text-sm text-muted-foreground">
@@ -78,6 +80,6 @@ export default async function EditarFuncionarioPage({ params }: EditarFuncionari
           </Card>
         ) : null}
       </div>
-    </main>
+    </AppShell>
   );
 }

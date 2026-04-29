@@ -83,8 +83,12 @@ export function EmployeeForm({ managers, defaultValues, action }: EmployeeFormPr
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6">
-      {errors.root ? <p className="text-sm text-destructive">{errors.root.message}</p> : null}
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-5">
+      {errors.root ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {errors.root.message}
+        </p>
+      ) : null}
 
       <div className="grid gap-2">
         <Label htmlFor="name">Nome</Label>
@@ -182,7 +186,7 @@ export function EmployeeForm({ managers, defaultValues, action }: EmployeeFormPr
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 border-t pt-5">
         <Button type="submit" disabled={pending}>
           {pending ? 'Salvando...' : 'Salvar'}
         </Button>

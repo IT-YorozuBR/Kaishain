@@ -106,6 +106,33 @@ export async function listManagers(): Promise<Manager[]> {
     .orderBy(asc(users.name));
 }
 
+export async function listEvaluationEmployeesForUser(user: CurrentUser) {
+  if (user.role === 'GESTOR') {
+    return getDb()
+      .select({ id: employees.id, name: employees.name })
+      .from(employees)
+      .where(eq(employees.managerId, user.id))
+      .orderBy(asc(employees.name));
+  }
+
+  if (user.role === 'RH' || user.role === 'ADMIN') {
+    return getDb()
+      .select({ id: employees.id, name: employees.name })
+      .from(employees)
+      .orderBy(asc(employees.name));
+  }
+
+  throw new UnauthorizedError();
+}
+
+export async function listEvaluationManagersForUser(user: CurrentUser) {
+  if (user.role !== 'RH' && user.role !== 'ADMIN') {
+    throw new UnauthorizedError();
+  }
+
+  return listManagers();
+}
+
 async function assertManagerCanBeAssigned(managerId: string | null) {
   if (!managerId) {
     return;

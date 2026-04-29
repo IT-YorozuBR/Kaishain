@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
-import { ClipboardCheck, LogOut, ShieldCheck, Users } from 'lucide-react';
+import { ClipboardCheck, ShieldCheck, Users } from 'lucide-react';
 
-import { auth, signOut } from '@/auth';
+import { auth } from '@/auth';
+import { AppShell } from '@/components/layout/AppShell';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default async function Home() {
@@ -14,35 +15,16 @@ export default async function Home() {
   }
 
   return (
-    <main className="bg-background min-h-dvh">
-      <div className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-8">
-        <header className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-normal">Kaishain</h1>
-              <Badge variant="secondary">{session.user.role}</Badge>
-            </div>
-            <p className="text-muted-foreground text-sm">
-              Ola, {session.user.name ?? session.user.email}. A autenticacao esta ativa.
-            </p>
-          </div>
-
-          <form
-            action={async () => {
-              'use server';
-
-              await signOut({ redirectTo: '/login' });
-            }}
-          >
-            <Button type="submit" variant="outline">
-              <LogOut data-icon="inline-start" />
-              Sair
-            </Button>
-          </form>
-        </header>
+    <AppShell>
+      <div className="grid gap-6">
+        <PageHeader
+          title="Kaishain"
+          description={`Ola, ${session.user.name ?? session.user.email}. A autenticacao esta ativa.`}
+          meta={<Badge variant="secondary">{session.user.role}</Badge>}
+        />
 
         <section className="grid gap-4 md:grid-cols-3">
-          <Card className="rounded-lg">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ClipboardCheck className="size-4" />
@@ -55,7 +37,7 @@ export default async function Home() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-lg">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="size-4" />
@@ -68,7 +50,7 @@ export default async function Home() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-lg">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShieldCheck className="size-4" />
@@ -82,6 +64,6 @@ export default async function Home() {
           </Card>
         </section>
       </div>
-    </main>
+    </AppShell>
   );
 }

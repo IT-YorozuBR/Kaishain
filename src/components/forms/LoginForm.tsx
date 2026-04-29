@@ -22,7 +22,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       <input type="hidden" name="redirectTo" value={redirectTo ?? '/'} />
 
       <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">E-mail</Label>
         <Input
           id="email"
           name="email"
@@ -52,9 +52,13 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         ) : null}
       </div>
 
-      {state.error ? <p className="text-destructive text-sm">{state.error}</p> : null}
+      {state.error ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {state.error}
+        </p>
+      ) : null}
 
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" className="mt-1 w-full" disabled={pending}>
         <LogIn data-icon="inline-start" />
         {pending ? 'Entrando...' : 'Entrar'}
       </Button>

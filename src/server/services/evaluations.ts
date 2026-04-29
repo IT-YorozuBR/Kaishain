@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, inArray, lte, type SQL } from 'drizzle-orm';
 
 import type { CurrentUser } from '@/lib/auth';
 import { getDb } from '@/lib/db';
@@ -7,10 +7,12 @@ import {
   employees,
   evaluationChecklistResults,
   evaluations,
+  users,
 } from '@/lib/db/schema';
 import { NotFoundError, UnauthorizedError, ValidationError } from '@/lib/errors';
 import { canEvaluate } from '@/lib/permissions/evaluation';
 import type { CreateEvaluationInput } from '@/lib/validators/evaluation';
+import type { EvaluationHistoryFilters } from '@/lib/validators/evaluation-history';
 
 export type TeamEmployee = typeof employees.$inferSelect;
 
@@ -192,4 +194,157 @@ export async function getEvaluationSummariesByEmployeeIds(employeeIds: string[],
   return db.query.evaluations.findMany({
     where: and(inArray(evaluations.employeeId, employeeIds), eq(evaluations.evaluationDate, date)),
   });
+}
+
+export type EvaluationHistoryItem = {
+  id: string;
+  evaluationDate: string;
+  score: number;
+  note: string | null;
+  employee: {
+    id: string;
+    name: string;
+    position: string | null;
+    department: string | null;
+  };
+  evaluator: {
+    id: string;
+    name: string;
+    email: string;
+  };
+};
+
+export type EvaluationDetail = EvaluationHistoryItem & {
+  checklistResults: {
+    checklistItemId: string;
+    label: string;
+    description: string | null;
+    order: number;
+    checked: boolean;
+  }[];
+};
+
+export async function listEvaluations(filters: EvaluationHistoryFilters) {
+  const db = getDb();
+  const page = Math.max(filters.page, 1);
+  const pageSize = Math.min(Math.max(filters.pageSize, 1), 100);
+  const offset = (page - 1) * pageSize;
+  const conditions: SQL[] = [];
+
+  if (filters.employeeId) {
+    conditions.push(eq(evaluations.employeeId, filters.employeeId));
+  }
+
+  if (filters.evaluatorId) {
+    conditions.push(eq(evaluations.evaluatorId, filters.evaluatorId));
+  }
+
+  if (filters.dateFrom) {
+    conditions.push(gte(evaluations.evaluationDate, filters.dateFrom));
+  }
+
+  if (filters.dateTo) {
+    conditions.push(lte(evaluations.evaluationDate, filters.dateTo));
+  }
+
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [totalRow] = await db.select({ value: count() }).from(evaluations).where(where);
+
+  const rows = await db
+    .select({
+      id: evaluations.id,
+      evaluationDate: evaluations.evaluationDate,
+      score: evaluations.score,
+      note: evaluations.note,
+      employee: {
+        id: employees.id,
+        name: employees.name,
+        position: employees.position,
+        department: employees.department,
+      },
+      evaluator: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      },
+    })
+    .from(evaluations)
+    .innerJoin(employees, eq(evaluations.employeeId, employees.id))
+    .innerJoin(users, eq(evaluations.evaluatorId, users.id))
+    .where(where)
+    .orderBy(desc(evaluations.evaluationDate), asc(employees.name))
+    .limit(pageSize)
+    .offset(offset);
+
+  return {
+    items: rows,
+    page,
+    pageSize,
+    total: totalRow?.value ?? 0,
+    totalPages: Math.max(Math.ceil((totalRow?.value ?? 0) / pageSize), 1),
+  };
+}
+
+export async function getEvaluationDetail(user: CurrentUser, evaluationId: string) {
+  const db = getDb();
+
+  const [row] = await db
+    .select({
+      id: evaluations.id,
+      evaluationDate: evaluations.evaluationDate,
+      score: evaluations.score,
+      note: evaluations.note,
+      evaluatorId: evaluations.evaluatorId,
+      employee: {
+        id: employees.id,
+        name: employees.name,
+        position: employees.position,
+        department: employees.department,
+      },
+      evaluator: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      },
+    })
+    .from(evaluations)
+    .innerJoin(employees, eq(evaluations.employeeId, employees.id))
+    .innerJoin(users, eq(evaluations.evaluatorId, users.id))
+    .where(eq(evaluations.id, evaluationId));
+
+  if (!row) {
+    throw new NotFoundError('Avaliacao nao encontrada.');
+  }
+
+  if (user.role === 'GESTOR' && row.evaluatorId !== user.id) {
+    throw new UnauthorizedError('Voce nao pode acessar avaliacoes de outro gestor.');
+  }
+
+  if (user.role !== 'GESTOR' && user.role !== 'RH' && user.role !== 'ADMIN') {
+    throw new UnauthorizedError();
+  }
+
+  const checklistResults = await db
+    .select({
+      checklistItemId: checklistItems.id,
+      label: checklistItems.label,
+      description: checklistItems.description,
+      order: checklistItems.order,
+      checked: evaluationChecklistResults.checked,
+    })
+    .from(evaluationChecklistResults)
+    .innerJoin(checklistItems, eq(evaluationChecklistResults.checklistItemId, checklistItems.id))
+    .where(eq(evaluationChecklistResults.evaluationId, evaluationId))
+    .orderBy(asc(checklistItems.order), asc(checklistItems.label));
+
+  return {
+    id: row.id,
+    evaluationDate: row.evaluationDate,
+    score: row.score,
+    note: row.note,
+    employee: row.employee,
+    evaluator: row.evaluator,
+    checklistResults,
+  };
 }

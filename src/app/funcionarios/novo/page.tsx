@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation';
 
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AppShell } from '@/components/layout/AppShell';
+import { FormCard } from '@/components/layout/FormCard';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { getCurrentUser } from '@/lib/auth';
 import { createEmployeeAction } from '@/server/actions/employees';
 import { listManagers } from '@/server/services/employees';
@@ -20,17 +22,16 @@ export default async function NovoFuncionarioPage() {
   const managers = await listManagers();
 
   return (
-    <main className="bg-background min-h-dvh px-4 py-8">
-      <div className="mx-auto w-full max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Novo funcionario</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <EmployeeForm managers={managers} action={createEmployeeAction} />
-          </CardContent>
-        </Card>
+    <AppShell>
+      <div className="grid max-w-3xl gap-6">
+        <PageHeader
+          title="Novo funcionario"
+          description="Cadastre um funcionario e associe um gestor responsavel."
+        />
+        <FormCard title="Dados do funcionario">
+          <EmployeeForm managers={managers} action={createEmployeeAction} />
+        </FormCard>
       </div>
-    </main>
+    </AppShell>
   );
 }
