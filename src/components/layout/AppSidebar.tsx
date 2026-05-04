@@ -7,6 +7,7 @@ import {
   ClipboardList,
   History,
   LayoutDashboard,
+  ListChecks,
   LogOut,
   Users,
 } from 'lucide-react';
@@ -40,6 +41,7 @@ const items: SidebarItemConfig[] = [
   { href: '/avaliar', label: 'Avaliar', icon: CalendarCheck, roles: ['GESTOR', 'ADMIN'] },
   { href: '/historico', label: 'Historico', icon: History, roles: ['GESTOR'] },
   { href: '/funcionarios', label: 'Funcionarios', icon: Users, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/checklist', label: 'Checklist', icon: ListChecks, roles: ['RH', 'ADMIN'] },
   { href: '/rh/historico', label: 'Avaliações', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
   { href: '/rh/avaliacoes-do-dia', label: 'Avaliações do dia', icon: LayoutDashboard, roles: ['RH', 'ADMIN'] },
 ];
