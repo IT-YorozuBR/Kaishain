@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react';
+import { BarChart3, Pencil } from 'lucide-react';
 import Link from 'next/link';
 
 import { StatusBadge } from '@/components/layout/StatusBadge';
@@ -48,7 +48,7 @@ export function EmployeesTable({ employees }: EmployeesTableProps) {
         <TableBody>
           {employees.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+              <TableCell colSpan={8} className="text-muted-foreground h-24 text-center">
                 Nenhum funcionario encontrado.
               </TableCell>
             </TableRow>
@@ -73,13 +73,22 @@ export function EmployeesTable({ employees }: EmployeesTableProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Link
-                    href={`/funcionarios/${employee.id}/editar`}
-                    className={cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }), 'ml-auto')}
-                    aria-label={`Editar ${employee.name}`}
-                  >
-                    <Pencil className="size-4" />
-                  </Link>
+                  <div className="flex justify-end gap-1">
+                    <Link
+                      href={`/rh/funcionarios/${employee.id}/dashboard`}
+                      className={cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }))}
+                      aria-label={`Dashboard de ${employee.name}`}
+                    >
+                      <BarChart3 className="size-4" />
+                    </Link>
+                    <Link
+                      href={`/funcionarios/${employee.id}/editar`}
+                      className={cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }))}
+                      aria-label={`Editar ${employee.name}`}
+                    >
+                      <Pencil className="size-4" />
+                    </Link>
+                  </div>
                 </TableCell>
               </TableRow>
             ))

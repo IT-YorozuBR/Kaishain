@@ -13,6 +13,7 @@ import {
 import { NotFoundError, UnauthorizedError, ValidationError } from '@/lib/errors';
 import { canEvaluate } from '@/lib/permissions/evaluation';
 import type { CreateEvaluationInput } from '@/lib/validators/evaluation';
+import type { EmployeeEvaluationDashboardFilters } from '@/lib/validators/employee-evaluation-dashboard';
 import type { EvaluationHistoryFilters } from '@/lib/validators/evaluation-history';
 
 export type TeamEmployee = typeof employees.$inferSelect;
@@ -299,6 +300,35 @@ export type DailyEvaluationStatus = {
   managers: ManagerDailyStatus[];
 };
 
+export type ManagerDailyEvaluationDetails = {
+  manager: { id: string; name: string; email: string };
+  date: string;
+  total: number;
+  done: number;
+  pending: number;
+  pct: number;
+  evaluated: {
+    employee: {
+      id: string;
+      name: string;
+      position: string | null;
+      department: string | null;
+    };
+    evaluation: {
+      id: string;
+      score: number;
+      note: string | null;
+      createdAt: Date;
+    };
+  }[];
+  pendingEmployees: {
+    id: string;
+    name: string;
+    position: string | null;
+    department: string | null;
+  }[];
+};
+
 export async function getDailyEvaluationStatus(date: string): Promise<DailyEvaluationStatus> {
   const db = getDb();
 
@@ -321,10 +351,7 @@ export async function getDailyEvaluationStatus(date: string): Promise<DailyEvalu
           .select({ employeeId: evaluations.employeeId })
           .from(evaluations)
           .where(
-            and(
-              inArray(evaluations.employeeId, employeeIds),
-              eq(evaluations.evaluationDate, date),
-            ),
+            and(inArray(evaluations.employeeId, employeeIds), eq(evaluations.evaluationDate, date)),
           )
       : [];
 
@@ -369,6 +396,364 @@ export async function getDailyEvaluationStatus(date: string): Promise<DailyEvalu
     totalPending: totalEmployees - totalDone,
     pct: totalEmployees > 0 ? Math.round((totalDone / totalEmployees) * 100) : 0,
     managers,
+  };
+}
+
+export async function getManagerDailyEvaluationDetails(
+  user: CurrentUser,
+  managerId: string,
+  date: string,
+): Promise<ManagerDailyEvaluationDetails> {
+  if (user.role !== 'RH' && user.role !== 'ADMIN') {
+    throw new UnauthorizedError();
+  }
+
+  const db = getDb();
+
+  const manager = await db.query.users.findFirst({
+    where: and(eq(users.id, managerId), eq(users.role, 'GESTOR'), eq(users.active, true)),
+    columns: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
+
+  if (!manager) {
+    throw new NotFoundError('Gestor nao encontrado.');
+  }
+
+  const team = await db
+    .select({
+      id: employees.id,
+      name: employees.name,
+      position: employees.position,
+      department: employees.department,
+    })
+    .from(employees)
+    .where(and(eq(employees.managerId, managerId), eq(employees.active, true)))
+    .orderBy(asc(employees.name));
+
+  const employeeIds = team.map((employee) => employee.id);
+
+  const evaluationRows =
+    employeeIds.length > 0
+      ? await db
+          .select({
+            id: evaluations.id,
+            employeeId: evaluations.employeeId,
+            score: evaluations.score,
+            note: evaluations.note,
+            createdAt: evaluations.createdAt,
+          })
+          .from(evaluations)
+          .where(
+            and(inArray(evaluations.employeeId, employeeIds), eq(evaluations.evaluationDate, date)),
+          )
+      : [];
+
+  const evaluationsByEmployeeId = new Map(
+    evaluationRows.map((evaluation) => [evaluation.employeeId, evaluation]),
+  );
+
+  const evaluated: ManagerDailyEvaluationDetails['evaluated'] = [];
+  const pendingEmployees: ManagerDailyEvaluationDetails['pendingEmployees'] = [];
+
+  for (const employee of team) {
+    const evaluation = evaluationsByEmployeeId.get(employee.id);
+
+    if (evaluation) {
+      evaluated.push({
+        employee,
+        evaluation: {
+          id: evaluation.id,
+          score: evaluation.score,
+          note: evaluation.note,
+          createdAt: evaluation.createdAt,
+        },
+      });
+    } else {
+      pendingEmployees.push(employee);
+    }
+  }
+
+  const total = team.length;
+  const done = evaluated.length;
+
+  return {
+    manager,
+    date,
+    total,
+    done,
+    pending: pendingEmployees.length,
+    pct: total > 0 ? Math.round((done / total) * 100) : 0,
+    evaluated,
+    pendingEmployees,
+  };
+}
+
+export type EmployeeEvaluationDashboard = {
+  employee: {
+    id: string;
+    name: string;
+    email: string | null;
+    registration: string | null;
+    position: string | null;
+    department: string | null;
+    active: boolean;
+    manager: { id: string; name: string; email: string } | null;
+  };
+  metrics: {
+    totalEvaluations: number;
+    averageScore: number | null;
+    highestScore: number | null;
+    lowestScore: number | null;
+    lastEvaluation: {
+      id: string;
+      evaluationDate: string;
+      score: number;
+      evaluatorName: string;
+    } | null;
+    scoreBuckets: {
+      critical: number;
+      attention: number;
+      good: number;
+      excellent: number;
+    };
+  };
+  checklistStats: {
+    checklistItemId: string;
+    label: string;
+    total: number;
+    checked: number;
+    unchecked: number;
+    pct: number;
+  }[];
+  history: {
+    items: {
+      id: string;
+      evaluationDate: string;
+      score: number;
+      note: string | null;
+      evaluator: {
+        id: string;
+        name: string;
+        email: string;
+      };
+    }[];
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+function requireRhOrAdmin(user: CurrentUser) {
+  if (user.role !== 'RH' && user.role !== 'ADMIN') {
+    throw new UnauthorizedError();
+  }
+}
+
+function getScoreBucket(
+  score: number,
+): keyof EmployeeEvaluationDashboard['metrics']['scoreBuckets'] {
+  if (score <= 4) return 'critical';
+  if (score <= 6) return 'attention';
+  if (score <= 8) return 'good';
+  return 'excellent';
+}
+
+export async function getEmployeeEvaluationDashboard(
+  user: CurrentUser,
+  employeeId: string,
+  filters: EmployeeEvaluationDashboardFilters,
+): Promise<EmployeeEvaluationDashboard> {
+  requireRhOrAdmin(user);
+
+  const db = getDb();
+  const pageSize = Math.min(Math.max(filters.pageSize, 1), 100);
+
+  const [employeeRow] = await db
+    .select({
+      employee: employees,
+      manager: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      },
+    })
+    .from(employees)
+    .leftJoin(users, eq(employees.managerId, users.id))
+    .where(eq(employees.id, employeeId));
+
+  if (!employeeRow) {
+    throw new NotFoundError('Funcionario nao encontrado.');
+  }
+
+  const conditions: SQL[] = [eq(evaluations.employeeId, employeeId)];
+
+  if (filters.dateFrom) {
+    conditions.push(gte(evaluations.evaluationDate, filters.dateFrom));
+  }
+
+  if (filters.dateTo) {
+    conditions.push(lte(evaluations.evaluationDate, filters.dateTo));
+  }
+
+  const where = and(...conditions);
+
+  const allRows = await db
+    .select({
+      id: evaluations.id,
+      evaluationDate: evaluations.evaluationDate,
+      score: evaluations.score,
+      note: evaluations.note,
+      evaluator: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      },
+    })
+    .from(evaluations)
+    .innerJoin(users, eq(evaluations.evaluatorId, users.id))
+    .where(where)
+    .orderBy(desc(evaluations.evaluationDate));
+
+  const totalEvaluations = allRows.length;
+  const totalPages = Math.max(Math.ceil(totalEvaluations / pageSize), 1);
+  const page = Math.min(Math.max(filters.page, 1), totalPages);
+  const offset = (page - 1) * pageSize;
+  const totalScore = allRows.reduce((sum, row) => sum + row.score, 0);
+  const averageScore =
+    totalEvaluations > 0 ? Math.round((totalScore / totalEvaluations) * 10) / 10 : null;
+  const highestScore = totalEvaluations > 0 ? Math.max(...allRows.map((row) => row.score)) : null;
+  const lowestScore = totalEvaluations > 0 ? Math.min(...allRows.map((row) => row.score)) : null;
+  const lastEvaluation = allRows[0]
+    ? {
+        id: allRows[0].id,
+        evaluationDate: allRows[0].evaluationDate,
+        score: allRows[0].score,
+        evaluatorName: allRows[0].evaluator.name,
+      }
+    : null;
+  const scoreBuckets = {
+    critical: 0,
+    attention: 0,
+    good: 0,
+    excellent: 0,
+  };
+
+  for (const row of allRows) {
+    scoreBuckets[getScoreBucket(row.score)] += 1;
+  }
+
+  const evaluationIds = allRows.map((row) => row.id);
+  const checklistStatsMap = new Map<
+    string,
+    {
+      checklistItemId: string;
+      label: string;
+      order: number;
+      total: number;
+      checked: number;
+      unchecked: number;
+      pct: number;
+    }
+  >();
+
+  if (evaluationIds.length > 0) {
+    const checklistRows = await db
+      .select({
+        checklistItemId: checklistItems.id,
+        label: checklistItems.label,
+        order: checklistItems.order,
+        checked: evaluationChecklistResults.checked,
+      })
+      .from(evaluationChecklistResults)
+      .innerJoin(checklistItems, eq(evaluationChecklistResults.checklistItemId, checklistItems.id))
+      .where(inArray(evaluationChecklistResults.evaluationId, evaluationIds));
+
+    for (const row of checklistRows) {
+      if (!checklistStatsMap.has(row.checklistItemId)) {
+        checklistStatsMap.set(row.checklistItemId, {
+          checklistItemId: row.checklistItemId,
+          label: row.label,
+          order: row.order,
+          total: 0,
+          checked: 0,
+          unchecked: 0,
+          pct: 0,
+        });
+      }
+
+      const stat = checklistStatsMap.get(row.checklistItemId)!;
+      stat.total += 1;
+      if (row.checked) {
+        stat.checked += 1;
+      } else {
+        stat.unchecked += 1;
+      }
+    }
+  }
+
+  const checklistStats = [...checklistStatsMap.values()]
+    .map((stat) => ({
+      checklistItemId: stat.checklistItemId,
+      label: stat.label,
+      total: stat.total,
+      checked: stat.checked,
+      unchecked: stat.unchecked,
+      pct: stat.total > 0 ? Math.round((stat.checked / stat.total) * 100) : 0,
+      order: stat.order,
+    }))
+    .sort((a, b) => {
+      if (a.pct !== b.pct) return a.pct - b.pct;
+      return a.order - b.order;
+    })
+    .map((stat) => ({
+      checklistItemId: stat.checklistItemId,
+      label: stat.label,
+      total: stat.total,
+      checked: stat.checked,
+      unchecked: stat.unchecked,
+      pct: stat.pct,
+    }));
+
+  const historyItems = allRows.slice(offset, offset + pageSize).map((row) => ({
+    id: row.id,
+    evaluationDate: row.evaluationDate,
+    score: row.score,
+    note: row.note,
+    evaluator: row.evaluator,
+  }));
+
+  return {
+    employee: {
+      ...employeeRow.employee,
+      manager: employeeRow.manager?.id
+        ? {
+            id: employeeRow.manager.id,
+            name: employeeRow.manager.name,
+            email: employeeRow.manager.email,
+          }
+        : null,
+    },
+    metrics: {
+      totalEvaluations,
+      averageScore,
+      highestScore,
+      lowestScore,
+      lastEvaluation,
+      scoreBuckets,
+    },
+    checklistStats,
+    history: {
+      items: historyItems,
+      page,
+      pageSize,
+      total: totalEvaluations,
+      totalPages,
+    },
   };
 }
 

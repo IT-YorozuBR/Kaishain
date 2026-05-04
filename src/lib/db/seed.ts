@@ -23,21 +23,233 @@ const seedEnvSchema = z.object({
 });
 
 const DEFAULT_PASSWORD = 'Teste@12345';
+const EXPECTED_EMPLOYEES_TOTAL = 365;
 
-// ─── Usuários do sistema (RH + gestores) ─────────────────────────────────────
+type DepartmentSeed = {
+  name: string;
+  count: number;
+  registrationPrefix: string;
+  position: string;
+};
+
+const departmentSeeds = [
+  {
+    name: 'Administrativo',
+    count: 3,
+    registrationPrefix: 'ADM',
+    position: 'Assistente Administrativo',
+  },
+  { name: 'RH/DP', count: 4, registrationPrefix: 'RHDP', position: 'Assistente de RH/DP' },
+  {
+    name: 'Financeiro/Fiscal/Contabilidade',
+    count: 6,
+    registrationPrefix: 'FIN',
+    position: 'Analista Financeiro',
+  },
+  {
+    name: 'Tecnologia da Informação',
+    count: 3,
+    registrationPrefix: 'TI',
+    position: 'Analista de TI',
+  },
+  { name: 'SST/MA', count: 5, registrationPrefix: 'SSTMA', position: 'Tecnico de SST/MA' },
+  {
+    name: 'Logística',
+    count: 14,
+    registrationPrefix: 'LOG',
+    position: 'Operador de Logistica',
+  },
+  { name: 'Compras', count: 3, registrationPrefix: 'COMP', position: 'Assistente de Compras' },
+  { name: 'Comercial', count: 2, registrationPrefix: 'COM', position: 'Assistente Comercial' },
+  {
+    name: 'Engenharia',
+    count: 5,
+    registrationPrefix: 'ENG',
+    position: 'Analista de Engenharia',
+  },
+  {
+    name: 'Pintura Interna',
+    count: 7,
+    registrationPrefix: 'PINTI',
+    position: 'Operador de Pintura Interna',
+  },
+  {
+    name: 'Manutenção',
+    count: 14,
+    registrationPrefix: 'MAN',
+    position: 'Tecnico de Manutencao',
+  },
+  {
+    name: 'Qualidade',
+    count: 19,
+    registrationPrefix: 'QUAL',
+    position: 'Inspetor de Qualidade',
+  },
+  { name: 'Prensa', count: 53, registrationPrefix: 'PRE', position: 'Operador de Prensa' },
+  {
+    name: 'Caldeiraria',
+    count: 4,
+    registrationPrefix: 'CALD',
+    position: 'Caldeireiro',
+  },
+  {
+    name: 'Ferramentaria',
+    count: 8,
+    registrationPrefix: 'FERR',
+    position: 'Ferramenteiro',
+  },
+  {
+    name: 'Montagem/Solda',
+    count: 167,
+    registrationPrefix: 'MS',
+    position: 'Operador de Montagem/Solda',
+  },
+  { name: 'Pintura', count: 21, registrationPrefix: 'PINT', position: 'Operador de Pintura' },
+  { name: 'Picking', count: 27, registrationPrefix: 'PICK', position: 'Operador de Picking' },
+] as const satisfies readonly DepartmentSeed[];
+
+const firstNames = [
+  'Ana',
+  'Bruno',
+  'Carla',
+  'Daniel',
+  'Eduarda',
+  'Felipe',
+  'Gabriela',
+  'Henrique',
+  'Isabela',
+  'Joao',
+  'Karen',
+  'Leonardo',
+  'Mariana',
+  'Nicolas',
+  'Olivia',
+  'Paulo',
+  'Renata',
+  'Sergio',
+  'Tatiane',
+  'Victor',
+  'Amanda',
+  'Caio',
+  'Debora',
+  'Everton',
+  'Fernanda',
+  'Gustavo',
+  'Helena',
+  'Igor',
+  'Juliana',
+  'Lucas',
+] as const;
+
+const lastNames = [
+  'Almeida',
+  'Barbosa',
+  'Cardoso',
+  'Dias',
+  'Esteves',
+  'Ferreira',
+  'Gomes',
+  'Lima',
+  'Martins',
+  'Nogueira',
+  'Oliveira',
+  'Pereira',
+  'Ramos',
+  'Silva',
+  'Teixeira',
+  'Vieira',
+  'Andrade',
+  'Batista',
+  'Campos',
+  'Correia',
+  'Freitas',
+  'Mendes',
+  'Moreira',
+  'Rocha',
+  'Santos',
+  'Souza',
+  'Torres',
+  'Ribeiro',
+  'Nascimento',
+  'Carvalho',
+] as const;
+
+function normalizeToSlug(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function getManagerEmail(department: string) {
+  return `gestor.${normalizeToSlug(department)}@empresa.com`;
+}
+
+function getTurno(index: number): Turno {
+  const turnos = ['PRIMEIRO', 'SEGUNDO', 'TERCEIRO'] as const satisfies readonly Turno[];
+  return turnos[index % turnos.length];
+}
+
+function getEmployeeName(globalIndex: number) {
+  const firstName = firstNames[globalIndex % firstNames.length];
+  const lastName = lastNames[Math.floor(globalIndex / firstNames.length) % lastNames.length];
+  return `${firstName} ${lastName}`;
+}
+
+type EmployeeSeed = {
+  name: string;
+  email: string;
+  registration: string;
+  position: string;
+  department: string;
+  turno: Turno;
+  managerEmail: string;
+};
+
+const departmentEmployeesTotal = departmentSeeds.reduce((total, department) => {
+  return total + department.count;
+}, 0);
+
+if (departmentEmployeesTotal !== EXPECTED_EMPLOYEES_TOTAL) {
+  throw new Error(
+    `Total de funcionarios invalido no seed: esperado ${EXPECTED_EMPLOYEES_TOTAL}, recebido ${departmentEmployeesTotal}.`,
+  );
+}
 
 const testUsers: Array<{ name: string; email: string; role: UserRole; department?: string }> = [
-  { name: 'Mariana Costa', email: 'rh@empresa.com', role: 'RH' },
-
-  // Gestores — um por departamento
-  { name: 'Carlos Almeida', email: 'gestor.producao@empresa.com', role: 'GESTOR', department: 'Montagem/Solda' },
-  { name: 'Fernanda Lima', email: 'gestor.qualidade@empresa.com', role: 'GESTOR', department: 'Qualidade' },
-  { name: 'Roberto Souza', email: 'gestor.logistica@empresa.com', role: 'GESTOR', department: 'Logistica' },
-  { name: 'Patricia Moreira', email: 'gestor.manutencao@empresa.com', role: 'GESTOR', department: 'Manutenção' },
-  { name: 'Gustavo Ferreira', email: 'gestor.administrativo@empresa.com', role: 'GESTOR', department: 'Administrativo' },
+  { name: 'Mariana Costa', email: 'rh@empresa.com', role: 'RH', department: 'RH/DP' },
+  ...departmentSeeds.map((department) => ({
+    name: `Gestor ${department.name}`,
+    email: getManagerEmail(department.name),
+    role: 'GESTOR' as const,
+    department: department.name,
+  })),
 ];
 
-// ─── Itens do checklist ───────────────────────────────────────────────────────
+const testEmployees: EmployeeSeed[] = departmentSeeds.flatMap((department, departmentIndex) => {
+  const previousCount = departmentSeeds
+    .slice(0, departmentIndex)
+    .reduce((total, item) => total + item.count, 0);
+
+  return Array.from({ length: department.count }, (_, localIndex) => {
+    const globalIndex = previousCount + localIndex;
+    const name = getEmployeeName(globalIndex);
+    const nameSlug = normalizeToSlug(name).replace(/-/g, '.');
+    const sequence = String(localIndex + 1).padStart(3, '0');
+
+    return {
+      name,
+      email: `${nameSlug}.${String(globalIndex + 1).padStart(3, '0')}@empresa.com`,
+      registration: `${department.registrationPrefix}-${sequence}`,
+      position: department.position,
+      department: department.name,
+      turno: getTurno(globalIndex),
+      managerEmail: getManagerEmail(department.name),
+    };
+  });
+});
 
 const initialChecklistItems = [
   { label: 'Pontualidade', description: 'Chegou e cumpriu horarios combinados.', order: 1 },
@@ -58,410 +270,6 @@ const initialChecklistItems = [
   },
   { label: 'Iniciativa', description: 'Antecipou necessidades e sugeriu melhorias.', order: 5 },
 ] as const;
-
-// ─── Funcionários ─────────────────────────────────────────────────────────────
-
-type EmployeeSeed = {
-  name: string;
-  email: string;
-  registration: string;
-  position: string;
-  department: string;
-  turno: Turno;
-  managerEmail: string;
-};
-
-const testEmployees: EmployeeSeed[] = [
-  // ── Produção (gestor: Carlos Almeida) ──────────────────────────────────────
-  {
-    name: 'Joao Pereira',
-    email: 'joao.pereira@empresa.com',
-    registration: 'PROD-001',
-    position: 'Operador de Producao',
-    department: 'Montagem/Solda',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.producao@empresa.com',
-  },
-  {
-    name: 'Ana Souza',
-    email: 'ana.souza@empresa.com',
-    registration: 'PROD-002',
-    position: 'Auxiliar de Producao',
-    department: 'Montagem/Solda',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.producao@empresa.com',
-  },
-  {
-    name: 'Bruno Santos',
-    email: 'bruno.santos@empresa.com',
-    registration: 'PROD-003',
-    position: 'Preparador de Linha',
-    department: 'Montagem/Solda',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.producao@empresa.com',
-  },
-  {
-    name: 'Leticia Andrade',
-    email: 'leticia.andrade@empresa.com',
-    registration: 'PROD-004',
-    position: 'Auxiliar de Producao',
-    department: 'Montagem/Solda',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.producao@empresa.com',
-  },
-  {
-    name: 'Marcos Oliveira',
-    email: 'marcos.oliveira@empresa.com',
-    registration: 'PROD-005',
-    position: 'Operador de Maquina',
-    department: 'Montagem/Solda',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.producao@empresa.com',
-  },
-  {
-    name: 'Simone Barbosa',
-    email: 'simone.barbosa@empresa.com',
-    registration: 'PROD-006',
-    position: 'Operadora de Maquina',
-    department: 'Montagem/Solda',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.producao@empresa.com',
-  },
-
-  // ── Qualidade (gestor: Fernanda Lima) ──────────────────────────────────────
-  {
-    name: 'Camila Rocha',
-    email: 'camila.rocha@empresa.com',
-    registration: 'QUAL-001',
-    position: 'Inspetora de Qualidade',
-    department: 'Qualidade',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.qualidade@empresa.com',
-  },
-  {
-    name: 'Diego Nunes',
-    email: 'diego.nunes@empresa.com',
-    registration: 'QUAL-002',
-    position: 'Analista de Qualidade',
-    department: 'Qualidade',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.qualidade@empresa.com',
-  },
-  {
-    name: 'Tatiane Correia',
-    email: 'tatiane.correia@empresa.com',
-    registration: 'QUAL-003',
-    position: 'Tecnica de Qualidade',
-    department: 'Qualidade',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.qualidade@empresa.com',
-  },
-  {
-    name: 'Felipe Cardoso',
-    email: 'felipe.cardoso@empresa.com',
-    registration: 'QUAL-004',
-    position: 'Inspetor de Qualidade',
-    department: 'Qualidade',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.qualidade@empresa.com',
-  },
-  {
-    name: 'Vanessa Ramos',
-    email: 'vanessa.ramos@empresa.com',
-    registration: 'QUAL-005',
-    position: 'Analista de Qualidade Sr.',
-    department: 'Qualidade',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.qualidade@empresa.com',
-  },
-
-  // ── Logística (gestor: Roberto Souza) ──────────────────────────────────────
-  {
-    name: 'Ricardo Teixeira',
-    email: 'ricardo.teixeira@empresa.com',
-    registration: 'LOG-001',
-    position: 'Operador de Logistica',
-    department: 'Logistica',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.logistica@empresa.com',
-  },
-  {
-    name: 'Claudia Pinto',
-    email: 'claudia.pinto@empresa.com',
-    registration: 'LOG-002',
-    position: 'Auxiliar de Expedicao',
-    department: 'Logistica',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.logistica@empresa.com',
-  },
-  {
-    name: 'Eduardo Gomes',
-    email: 'eduardo.gomes@empresa.com',
-    registration: 'LOG-003',
-    position: 'Motorista de Entrega',
-    department: 'Logistica',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.logistica@empresa.com',
-  },
-  {
-    name: 'Aline Mendes',
-    email: 'aline.mendes@empresa.com',
-    registration: 'LOG-004',
-    position: 'Separadora de Pedidos',
-    department: 'Logistica',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.logistica@empresa.com',
-  },
-  {
-    name: 'Thiago Carvalho',
-    email: 'thiago.carvalho@empresa.com',
-    registration: 'LOG-005',
-    position: 'Conferente de Estoque',
-    department: 'Logistica',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.logistica@empresa.com',
-  },
-  {
-    name: 'Renata Dias',
-    email: 'renata.dias@empresa.com',
-    registration: 'LOG-006',
-    position: 'Auxiliar de Logistica',
-    department: 'Logistica',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.logistica@empresa.com',
-  },
-
-  // ── Manutenção (gestor: Patricia Moreira) ──────────────────────────────────
-  {
-    name: 'Sergio Lopes',
-    email: 'sergio.lopes@empresa.com',
-    registration: 'MAN-001',
-    position: 'Tecnico de Manutencao',
-    department: 'Manutenção',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.manutencao@empresa.com',
-  },
-  {
-    name: 'Fabio Nascimento',
-    email: 'fabio.nascimento@empresa.com',
-    registration: 'MAN-002',
-    position: 'Eletricista Industrial',
-    department: 'Manutenção',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.manutencao@empresa.com',
-  },
-  {
-    name: 'Juliana Melo',
-    email: 'juliana.melo@empresa.com',
-    registration: 'MAN-003',
-    position: 'Tecnica de Instrumentacao',
-    department: 'Manutenção',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.manutencao@empresa.com',
-  },
-  {
-    name: 'Rafael Vieira',
-    email: 'rafael.vieira@empresa.com',
-    registration: 'MAN-004',
-    position: 'Mecanico Industrial',
-    department: 'Manutenção',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.manutencao@empresa.com',
-  },
-  {
-    name: 'Anderson Freitas',
-    email: 'anderson.freitas@empresa.com',
-    registration: 'MAN-005',
-    position: 'Tecnico de Manutencao',
-    department: 'Manutenção',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.manutencao@empresa.com',
-  },
-
-  // ── Administrativo (gestor: Gustavo Ferreira) ──────────────────────────────
-  {
-    name: 'Elisa Martins',
-    email: 'elisa.martins@empresa.com',
-    registration: 'ADM-001',
-    position: 'Assistente de RH',
-    department: 'Administrativo',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.administrativo@empresa.com',
-  },
-  {
-    name: 'Priscila Araújo',
-    email: 'priscila.araujo@empresa.com',
-    registration: 'ADM-002',
-    position: 'Assistente Financeiro',
-    department: 'Administrativo',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.administrativo@empresa.com',
-  },
-  {
-    name: 'Leonardo Batista',
-    email: 'leonardo.batista@empresa.com',
-    registration: 'ADM-003',
-    position: 'Analista de TI',
-    department: 'Administrativo',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.administrativo@empresa.com',
-  },
-  {
-    name: 'Natalia Cunha',
-    email: 'natalia.cunha@empresa.com',
-    registration: 'ADM-004',
-    position: 'Recepcionista',
-    department: 'Administrativo',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.administrativo@empresa.com',
-  },
-  {
-    name: 'Alexandre Torres',
-    email: 'alexandre.torres@empresa.com',
-    registration: 'ADM-005',
-    position: 'Assistente Administrativo',
-    department: 'Administrativo',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.administrativo@empresa.com',
-  },
-  {
-    name: 'Helena Barros',
-    email: 'helena.barros@empresa.com',
-    registration: 'PROD-007',
-    position: 'Operadora de Embalagem',
-    department: 'Montagem/Solda',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.producao@empresa.com',
-  },
-  {
-    name: 'Paulo Henrique',
-    email: 'paulo.henrique@empresa.com',
-    registration: 'PROD-008',
-    position: 'Abastecedor de Linha',
-    department: 'Montagem/Solda',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.producao@empresa.com',
-  },
-  {
-    name: 'Monica Farias',
-    email: 'monica.farias@empresa.com',
-    registration: 'PROD-009',
-    position: 'Operadora de Maquina',
-    department: 'Montagem/Solda',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.producao@empresa.com',
-  },
-  {
-    name: 'Igor Martins',
-    email: 'igor.martins@empresa.com',
-    registration: 'QUAL-006',
-    position: 'Assistente de Qualidade',
-    department: 'Qualidade',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.qualidade@empresa.com',
-  },
-  {
-    name: 'Larissa Prado',
-    email: 'larissa.prado@empresa.com',
-    registration: 'QUAL-007',
-    position: 'Analista de Laboratorio',
-    department: 'Qualidade',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.qualidade@empresa.com',
-  },
-  {
-    name: 'Renan Castro',
-    email: 'renan.castro@empresa.com',
-    registration: 'QUAL-008',
-    position: 'Inspetor de Qualidade',
-    department: 'Qualidade',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.qualidade@empresa.com',
-  },
-  {
-    name: 'Beatriz Lopes',
-    email: 'beatriz.lopes@empresa.com',
-    registration: 'LOG-007',
-    position: 'Conferente de Carga',
-    department: 'Logistica',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.logistica@empresa.com',
-  },
-  {
-    name: 'Marcelo Alves',
-    email: 'marcelo.alves@empresa.com',
-    registration: 'LOG-008',
-    position: 'Operador de Empilhadeira',
-    department: 'Logistica',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.logistica@empresa.com',
-  },
-  {
-    name: 'Elaine Ribeiro',
-    email: 'elaine.ribeiro@empresa.com',
-    registration: 'LOG-009',
-    position: 'Auxiliar de Armazem',
-    department: 'Logistica',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.logistica@empresa.com',
-  },
-  {
-    name: 'Vitor Campos',
-    email: 'vitor.campos@empresa.com',
-    registration: 'MAN-006',
-    position: 'Auxiliar de Manutencao',
-    department: 'Manutenção',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.manutencao@empresa.com',
-  },
-  {
-    name: 'Carolina Pires',
-    email: 'carolina.pires@empresa.com',
-    registration: 'MAN-007',
-    position: 'Planejadora de Manutencao',
-    department: 'Manutenção',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.manutencao@empresa.com',
-  },
-  {
-    name: 'Daniel Moraes',
-    email: 'daniel.moraes@empresa.com',
-    registration: 'MAN-008',
-    position: 'Mecanico Industrial',
-    department: 'Manutenção',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.manutencao@empresa.com',
-  },
-  {
-    name: 'Marina Sales',
-    email: 'marina.sales@empresa.com',
-    registration: 'ADM-006',
-    position: 'Analista Financeira',
-    department: 'Administrativo',
-    turno: 'PRIMEIRO',
-    managerEmail: 'gestor.administrativo@empresa.com',
-  },
-  {
-    name: 'Otavio Reis',
-    email: 'otavio.reis@empresa.com',
-    registration: 'ADM-007',
-    position: 'Assistente de Compras',
-    department: 'Administrativo',
-    turno: 'SEGUNDO',
-    managerEmail: 'gestor.administrativo@empresa.com',
-  },
-  {
-    name: 'Sabrina Duarte',
-    email: 'sabrina.duarte@empresa.com',
-    registration: 'ADM-008',
-    position: 'Analista de Suporte',
-    department: 'Administrativo',
-    turno: 'TERCEIRO',
-    managerEmail: 'gestor.administrativo@empresa.com',
-  },
-];
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
 
 const evaluationDates = [
   '2026-04-20',
@@ -521,49 +329,70 @@ async function main() {
               email: parsedEnv.data.SEED_ADMIN_EMAIL,
               role: 'ADMIN' as const,
               passwordHash: adminPasswordHash,
+              department: null,
             },
           ]
         : []),
       ...testUsers.map((user) => ({ ...user, passwordHash: testPasswordHash })),
     ];
 
-    console.log('\n── Usuarios ──────────────────────────────────────────');
+    console.log('\nUsuarios');
     for (const user of usersToSeed) {
       await db
         .insert(users)
-        .values({ name: user.name, email: user.email, passwordHash: user.passwordHash, role: user.role, department: user.department ?? null, active: true })
+        .values({
+          name: user.name,
+          email: user.email,
+          passwordHash: user.passwordHash,
+          role: user.role,
+          department: user.department ?? null,
+          active: true,
+        })
         .onConflictDoUpdate({
           target: users.email,
-          set: { name: user.name, passwordHash: user.passwordHash, role: user.role, department: user.department ?? null, active: true, updatedAt: new Date() },
+          set: {
+            name: user.name,
+            passwordHash: user.passwordHash,
+            role: user.role,
+            department: user.department ?? null,
+            active: true,
+            updatedAt: new Date(),
+          },
         });
+
       console.log(`  [${user.role.padEnd(6)}] ${user.name} <${user.email}>`);
     }
 
-    console.log('\n── Checklist ─────────────────────────────────────────');
+    console.log('\nChecklist');
     for (const item of initialChecklistItems) {
       const existing = await db.query.checklistItems.findFirst({
         where: eq(checklistItems.label, item.label),
         columns: { id: true },
       });
+
       if (existing) {
         console.log(`  [skip ] ${item.label}`);
         continue;
       }
+
       await db.insert(checklistItems).values(item);
       console.log(`  [criou] ${item.label}`);
     }
 
     const seededUsers = await db.query.users.findMany({ columns: { id: true, email: true } });
-    const userIdsByEmail = new Map(seededUsers.map((u) => [u.email, u.id]));
+    const userIdsByEmail = new Map(seededUsers.map((user) => [user.email, user.id]));
 
-    console.log('\n── Funcionarios ──────────────────────────────────────');
-    const departments = new Set(testEmployees.map((e) => e.department));
-    for (const dept of departments) {
-      const deptEmployees = testEmployees.filter((e) => e.department === dept);
-      console.log(`\n  ${dept} (${deptEmployees.length} funcionarios)`);
+    console.log('\nFuncionarios');
+    for (const department of departmentSeeds) {
+      const departmentEmployees = testEmployees.filter(
+        (employee) => employee.department === department.name,
+      );
 
-      for (const employee of deptEmployees) {
+      console.log(`\n  ${department.name} (${departmentEmployees.length} funcionarios)`);
+
+      for (const employee of departmentEmployees) {
         const managerId = userIdsByEmail.get(employee.managerEmail);
+
         if (!managerId) {
           throw new Error(`Gestor nao encontrado: ${employee.managerEmail}`);
         }
@@ -594,7 +423,9 @@ async function main() {
             },
           });
 
-        console.log(`    [${employee.turno.padEnd(8)}] ${employee.registration} — ${employee.name}`);
+        console.log(
+          `    [${employee.turno.padEnd(8)}] ${employee.registration} - ${employee.name}`,
+        );
       }
     }
 
@@ -683,13 +514,17 @@ async function main() {
       }
     }
 
+    const seededDepartments = new Set(testEmployees.map((employee) => employee.department));
+
     console.log(`  ${evaluationsCount} avaliacoes em ${evaluationDates.length} datas`);
 
     console.log('\nConcluido');
-    console.log(`   Usuarios:     ${usersToSeed.length}`);
-    console.log(`   Funcionarios: ${testEmployees.length} em ${departments.size} departamentos`);
-    console.log(`   Avaliacoes:   ${evaluationsCount} em ${evaluationDates.length} datas`);
-    console.log(`   Senha padrao: ${DEFAULT_PASSWORD}\n`);
+    console.log(`   Usuarios do sistema: ${usersToSeed.length}`);
+    console.log(
+      `   Funcionarios:        ${testEmployees.length} em ${seededDepartments.size} setores`,
+    );
+    console.log(`   Avaliacoes:          ${evaluationsCount} em ${evaluationDates.length} datas`);
+    console.log(`   Senha padrao:        ${DEFAULT_PASSWORD}\n`);
   } finally {
     await pool.end();
   }
