@@ -2,6 +2,7 @@ import { and, asc, count, desc, eq, gte, inArray, lte, type SQL } from 'drizzle-
 
 import type { CurrentUser } from '@/lib/auth';
 import { getDb } from '@/lib/db';
+import { listChecklistItems } from '@/server/services/checklist';
 import {
   checklistItems,
   employees,
@@ -36,15 +37,6 @@ export async function getEmployeesForEvaluation(user: CurrentUser) {
 
   // GESTOR vê apenas seus liderados diretos; RH não avalia
   return getMyTeam(user.id);
-}
-
-export async function getActiveChecklistItems() {
-  const db = getDb();
-
-  return db.query.checklistItems.findMany({
-    where: eq(checklistItems.active, true),
-    orderBy: [asc(checklistItems.order), asc(checklistItems.label)],
-  });
 }
 
 export async function getTodayEvaluation(employeeId: string, date: string) {
@@ -97,7 +89,7 @@ export async function getEvaluationFormData(user: CurrentUser, employeeId: strin
   }
 
   const [activeChecklistItems, todayEvaluation] = await Promise.all([
-    getActiveChecklistItems(),
+    listChecklistItems(true),
     getTodayEvaluation(employeeId, date),
   ]);
 
@@ -127,7 +119,7 @@ export async function upsertEvaluation(
     throw new UnauthorizedError();
   }
 
-  const activeChecklistItems = await getActiveChecklistItems();
+  const activeChecklistItems = await listChecklistItems(true);
   const activeChecklistItemIds = new Set(activeChecklistItems.map((item) => item.id));
   const submittedChecklistItemIds = new Set(
     input.checklistResults.map((result) => result.checklistItemId),
