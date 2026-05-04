@@ -15,7 +15,7 @@ export default async function ChecklistPage() {
   const user = await getCurrentUser();
 
   if (!user) redirect('/login');
-  if (user.role === 'GESTOR') redirect('/avaliar');
+  if (user.role !== 'RH' && user.role !== 'ADMIN') redirect('/avaliar');
 
   const allItems = await listChecklistItems();
   const ativos = allItems.filter((item) => item.active);

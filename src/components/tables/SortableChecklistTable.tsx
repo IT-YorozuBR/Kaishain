@@ -114,10 +114,14 @@ export function SortableChecklistTable({ initialItems }: SortableChecklistTableP
     const oldIndex = items.findIndex((item) => item.id === active.id);
     const newIndex = items.findIndex((item) => item.id === over.id);
     const reordered = arrayMove(items, oldIndex, newIndex);
+    const previous = items; // snapshot before optimistic update
 
-    setItems(reordered); // optimistic update
+    setItems(reordered);
     startReorder(async () => {
-      await reorderChecklistItemsAction(reordered.map((item) => item.id));
+      const result = await reorderChecklistItemsAction(reordered.map((item) => item.id));
+      if (result.error) {
+        setItems(previous); // rollback on failure
+      }
     });
   }
 

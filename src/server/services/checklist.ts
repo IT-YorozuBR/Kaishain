@@ -3,7 +3,7 @@ import { asc, eq, max } from 'drizzle-orm';
 import type { CurrentUser } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { checklistItems } from '@/lib/db/schema';
-import { NotFoundError, UnauthorizedError } from '@/lib/errors';
+import { NotFoundError, UnauthorizedError, ValidationError } from '@/lib/errors';
 import type {
   CreateChecklistItemInput,
   UpdateChecklistItemInput,
@@ -100,6 +100,17 @@ export async function reorderChecklistItems(
 ): Promise<void> {
   requireRhOrAdmin(user);
   const db = getDb();
+
+  const activeItems = await listChecklistItems(true);
+  const activeIds = new Set(activeItems.map((item) => item.id));
+
+  const isValidSet =
+    orderedIds.length === activeItems.length &&
+    orderedIds.every((id) => activeIds.has(id));
+
+  if (!isValidSet) {
+    throw new ValidationError('Lista de reordenação inválida ou desatualizada.');
+  }
 
   await db.transaction(async (tx) => {
     await Promise.all(

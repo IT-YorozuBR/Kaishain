@@ -101,7 +101,7 @@ export async function reorderChecklistItemsAction(
   try {
     await reorderChecklistItems(user, parsed.data);
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
+    if (error instanceof UnauthorizedError || error instanceof ValidationError) {
       return { error: error.message };
     }
     throw error;
