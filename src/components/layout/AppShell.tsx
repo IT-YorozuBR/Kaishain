@@ -1,6 +1,13 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { CalendarCheck, ClipboardList, History, LayoutDashboard, Users } from 'lucide-react';
+import {
+  CalendarCheck,
+  ClipboardList,
+  History,
+  LayoutDashboard,
+  UserCog,
+  Users,
+} from 'lucide-react';
 import type { ComponentType } from 'react';
 
 import { signOut } from '@/auth';
@@ -25,8 +32,14 @@ const mobileItems: MobileItem[] = [
   { href: '/avaliar', label: 'Avaliar', icon: CalendarCheck, roles: ['GESTOR', 'ADMIN'] },
   { href: '/historico', label: 'Historico', icon: History, roles: ['GESTOR'] },
   { href: '/funcionarios', label: 'Funcionarios', icon: Users, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/usuarios', label: 'Usuarios', icon: UserCog, roles: ['RH', 'ADMIN'] },
   { href: '/rh/historico', label: 'Historico', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
-  { href: '/rh/avaliacoes-do-dia', label: 'Avaliações do dia', icon: LayoutDashboard, roles: ['RH', 'ADMIN'] },
+  {
+    href: '/rh/avaliacoes-do-dia',
+    label: 'Avaliações do dia',
+    icon: LayoutDashboard,
+    roles: ['RH', 'ADMIN'],
+  },
 ];
 
 export async function AppShell({ children }: AppShellProps) {
@@ -43,18 +56,18 @@ export async function AppShell({ children }: AppShellProps) {
   }
 
   return (
-    <div className="min-h-dvh bg-background lg:flex">
+    <div className="bg-background min-h-dvh lg:flex">
       <AppSidebar user={user} signOutAction={signOutAction} />
       <div className="min-w-0 flex-1">
-        <div className="border-b border-sidebar-border bg-sidebar px-4 py-3 text-sidebar-foreground lg:hidden">
+        <div className="border-sidebar-border bg-sidebar text-sidebar-foreground border-b px-4 py-3 lg:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="grid size-9 place-items-center rounded-lg bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
+              <div className="bg-sidebar-primary text-sidebar-primary-foreground grid size-9 place-items-center rounded-lg text-sm font-semibold">
                 K
               </div>
               <div>
                 <div className="text-sm font-semibold">Kaishain</div>
-                <div className="text-xs text-sidebar-foreground/60">{user.role}</div>
+                <div className="text-sidebar-foreground/60 text-xs">{user.role}</div>
               </div>
             </div>
             <form action={signOutAction}>
@@ -78,7 +91,7 @@ export async function AppShell({ children }: AppShellProps) {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      'flex shrink-0 items-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-xs font-medium text-sidebar-foreground/75',
+                      'text-sidebar-foreground/75 flex shrink-0 items-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-xs font-medium',
                     )}
                   >
                     <Icon className="size-3.5" />

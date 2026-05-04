@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   ListChecks,
   LogOut,
+  UserCog,
   Users,
 } from 'lucide-react';
 
@@ -41,9 +42,15 @@ const items: SidebarItemConfig[] = [
   { href: '/avaliar', label: 'Avaliar', icon: CalendarCheck, roles: ['GESTOR', 'ADMIN'] },
   { href: '/historico', label: 'Historico', icon: History, roles: ['GESTOR'] },
   { href: '/funcionarios', label: 'Funcionarios', icon: Users, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/usuarios', label: 'Usuarios', icon: UserCog, roles: ['RH', 'ADMIN'] },
   { href: '/rh/checklist', label: 'Checklist', icon: ListChecks, roles: ['RH', 'ADMIN'] },
   { href: '/rh/historico', label: 'Avaliações', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
-  { href: '/rh/avaliacoes-do-dia', label: 'Avaliações do dia', icon: LayoutDashboard, roles: ['RH', 'ADMIN'] },
+  {
+    href: '/rh/avaliacoes-do-dia',
+    label: 'Avaliações do dia',
+    icon: LayoutDashboard,
+    roles: ['RH', 'ADMIN'],
+  },
 ];
 
 export function AppSidebar({ user, signOutAction }: AppSidebarProps) {
@@ -56,7 +63,7 @@ export function AppSidebar({ user, signOutAction }: AppSidebarProps) {
     return localStorage.getItem('kaishain-sidebar-collapsed') === 'true';
   });
 
-function toggleCollapsed() {
+  function toggleCollapsed() {
     setCollapsed((current) => {
       const next = !current;
       localStorage.setItem('kaishain-sidebar-collapsed', String(next));
@@ -72,18 +79,18 @@ function toggleCollapsed() {
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-dvh shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-xl shadow-slate-950/10 transition-[width] duration-200 lg:flex lg:flex-col',
+        'border-sidebar-border bg-sidebar text-sidebar-foreground sticky top-0 hidden h-dvh shrink-0 border-r shadow-xl shadow-slate-950/10 transition-[width] duration-200 lg:flex lg:flex-col',
         collapsed ? 'w-[76px]' : 'w-64',
       )}
     >
-      <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-        <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
+      <div className="border-sidebar-border flex h-16 items-center gap-3 border-b px-4">
+        <div className="bg-sidebar-primary text-sidebar-primary-foreground grid size-9 shrink-0 place-items-center rounded-lg text-sm font-semibold">
           K
         </div>
         {!collapsed ? (
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">Kaishain</div>
-            <div className="truncate text-xs text-sidebar-foreground/65">Gestao interna</div>
+            <div className="text-sidebar-foreground/65 truncate text-xs">Gestao interna</div>
           </div>
         ) : null}
       </div>
@@ -99,7 +106,7 @@ function toggleCollapsed() {
               href={item.href}
               title={collapsed ? item.label : undefined}
               className={cn(
-                'flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/75 transition hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                'text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition',
                 active && 'bg-sidebar-accent text-sidebar-accent-foreground',
                 collapsed && 'justify-center px-0',
               )}
@@ -111,11 +118,11 @@ function toggleCollapsed() {
         })}
       </nav>
 
-      <div className="mt-auto grid gap-3 border-t border-sidebar-border p-3">
+      <div className="border-sidebar-border mt-auto grid gap-3 border-t p-3">
         {!collapsed ? (
           <div className="min-w-0 rounded-lg bg-white/5 p-3">
             <div className="truncate text-sm font-medium">{user.name ?? user.email}</div>
-            <div className="truncate text-xs text-sidebar-foreground/60">{user.role}</div>
+            <div className="text-sidebar-foreground/60 truncate text-xs">{user.role}</div>
           </div>
         ) : null}
         <div className={cn('flex gap-2', collapsed && 'grid')}>
