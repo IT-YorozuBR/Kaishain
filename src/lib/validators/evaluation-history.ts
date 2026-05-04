@@ -18,11 +18,18 @@ const optionalPositiveInt = z
   .transform((value) => (value === '' ? undefined : Number(value)))
   .pipe(z.number().int().positive().optional());
 
+const optionalString = z
+  .string()
+  .trim()
+  .transform((value) => (value === '' ? undefined : value))
+  .pipe(z.string().max(255).optional());
+
 export const evaluationHistoryFiltersSchema = z.object({
   employeeId: optionalUuid.optional(),
   evaluatorId: optionalUuid.optional(),
   dateFrom: optionalDate.optional(),
   dateTo: optionalDate.optional(),
+  department: optionalString.optional(),
   page: optionalPositiveInt.default(1),
   pageSize: optionalPositiveInt.default(20),
 });

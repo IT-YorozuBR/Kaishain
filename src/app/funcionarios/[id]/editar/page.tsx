@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/layout/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getCurrentUser } from '@/lib/auth';
 import { NotFoundError } from '@/lib/errors';
+import type { EquipamentoValue } from '@/lib/validators/employee';
 import { updateEmployeeAction } from '@/server/actions/employees';
 import { getEmployee, listManagers } from '@/server/services/employees';
 
@@ -60,7 +61,9 @@ export default async function EditarFuncionarioPage({ params }: EditarFuncionari
               registration: employee.registration,
               position: employee.position,
               department: employee.department,
+              turno: employee.turno,
               managerId: employee.managerId,
+              equipamentos: employee.equipamentos as EquipamentoValue[],
             }}
             action={updateAction}
           />

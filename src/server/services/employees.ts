@@ -1,4 +1,4 @@
-import { and, asc, eq, ilike, ne, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, ne, or, type SQL } from 'drizzle-orm';
 
 import type { CurrentUser } from '@/lib/auth';
 import { getDb } from '@/lib/db';
@@ -16,18 +16,23 @@ export type EmployeeWithManager = typeof employees.$inferSelect & {
   manager: Pick<typeof users.$inferSelect, 'id' | 'name'> | null;
 };
 
-export type Manager = Pick<typeof users.$inferSelect, 'id' | 'name' | 'email'>;
+export type Manager = Pick<typeof users.$inferSelect, 'id' | 'name' | 'email' | 'department'>;
 
 export type ListEmployeesFilters = {
   search?: string;
   managerId?: string;
+  department?: string;
   active?: boolean;
+  limit?: number;
+  offset?: number;
 };
 
-export async function listEmployees(
-  filters: ListEmployeesFilters = {},
-): Promise<EmployeeWithManager[]> {
-  const db = getDb();
+export type ListEmployeesResult = {
+  rows: EmployeeWithManager[];
+  total: number;
+};
+
+function buildEmployeeConditions(filters: ListEmployeesFilters): SQL[] {
   const conditions: SQL[] = [];
 
   if (filters.active !== undefined) {
@@ -38,17 +43,37 @@ export async function listEmployees(
     conditions.push(eq(employees.managerId, filters.managerId));
   }
 
+  if (filters.department) {
+    conditions.push(eq(employees.department, filters.department));
+  }
+
   const search = filters.search?.trim();
   if (search) {
     const term = `%${search}%`;
     const searchCondition = or(ilike(employees.name, term), ilike(employees.email, term));
-
     if (searchCondition) {
       conditions.push(searchCondition);
     }
   }
 
-  const rows = await db
+  return conditions;
+}
+
+export async function listEmployees(
+  filters: ListEmployeesFilters = {},
+): Promise<ListEmployeesResult> {
+  const db = getDb();
+  const conditions = buildEmployeeConditions(filters);
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [countResult] = await db
+    .select({ total: count() })
+    .from(employees)
+    .where(whereClause);
+
+  const total = countResult?.total ?? 0;
+
+  const baseQuery = db
     .select({
       employee: employees,
       manager: {
@@ -58,13 +83,19 @@ export async function listEmployees(
     })
     .from(employees)
     .leftJoin(users, eq(employees.managerId, users.id))
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .where(whereClause)
     .orderBy(asc(employees.name));
 
-  return rows.map(({ employee, manager }) => ({
+  const rawRows = await (filters.limit !== undefined
+    ? baseQuery.limit(filters.limit).offset(filters.offset ?? 0)
+    : baseQuery);
+
+  const rows = rawRows.map(({ employee, manager }) => ({
     ...employee,
     manager: manager?.id ? { id: manager.id, name: manager.name } : null,
   }));
+
+  return { rows, total };
 }
 
 export async function getEmployee(id: string): Promise<EmployeeWithManager> {
@@ -100,6 +131,7 @@ export async function listManagers(): Promise<Manager[]> {
       id: users.id,
       name: users.name,
       email: users.email,
+      department: users.department,
     })
     .from(users)
     .where(and(eq(users.role, 'GESTOR'), eq(users.active, true)))
@@ -123,6 +155,18 @@ export async function listEvaluationEmployeesForUser(user: CurrentUser) {
   }
 
   throw new UnauthorizedError();
+}
+
+export async function listActiveDepartments(): Promise<string[]> {
+  const db = getDb();
+  const rows = await db
+    .selectDistinct({ department: employees.department })
+    .from(employees)
+    .where(eq(employees.active, true));
+  return rows
+    .map((r) => r.department)
+    .filter((d): d is string => d !== null)
+    .sort((a, b) => a.localeCompare(b));
 }
 
 export async function listEvaluationManagersForUser(user: CurrentUser) {

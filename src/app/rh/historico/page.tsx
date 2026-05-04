@@ -9,6 +9,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { getCurrentUser } from '@/lib/auth';
 import { listEvaluationHistoryAction } from '@/server/actions/evaluation-history';
 import {
+  listActiveDepartments,
   listEvaluationEmployeesForUser,
   listEvaluationManagersForUser,
 } from '@/server/services/employees';
@@ -51,16 +52,18 @@ export default async function RhHistoricoPage({ searchParams }: RhHistoricoPageP
   }
 
   const params = await searchParams;
-  const [history, employees, evaluators] = await Promise.all([
+  const [history, employees, evaluators, departments] = await Promise.all([
     listEvaluationHistoryAction({
       employeeId: getParam(params, 'employeeId'),
       evaluatorId: getParam(params, 'evaluatorId'),
       dateFrom: getParam(params, 'dateFrom'),
       dateTo: getParam(params, 'dateTo'),
+      department: getParam(params, 'department'),
       page: getParam(params, 'page'),
     }),
     listEvaluationEmployeesForUser(user),
     listEvaluationManagersForUser(user),
+    listActiveDepartments(),
   ]);
 
   return (
@@ -74,11 +77,13 @@ export default async function RhHistoricoPage({ searchParams }: RhHistoricoPageP
         <EvaluationHistoryFilters
           employees={employees}
           evaluators={evaluators}
+          departments={departments}
           defaultValues={{
             employeeId: getParam(params, 'employeeId'),
             evaluatorId: getParam(params, 'evaluatorId'),
             dateFrom: getParam(params, 'dateFrom'),
             dateTo: getParam(params, 'dateTo'),
+            department: getParam(params, 'department'),
           }}
         />
 

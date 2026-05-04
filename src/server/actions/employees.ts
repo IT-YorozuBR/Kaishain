@@ -21,6 +21,7 @@ export type EmployeeActionState = {
     position?: string[];
     department?: string[];
     managerId?: string[];
+    equipamentos?: string[];
   };
 };
 

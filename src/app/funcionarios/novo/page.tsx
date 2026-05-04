@@ -23,7 +23,7 @@ export default async function NovoFuncionarioPage() {
 
   return (
     <AppShell>
-      <div className="grid max-w-3xl gap-6">
+      <div className="grid max-w-3xl gap-6 mx-auto mt-10">
         <PageHeader
           title="Novo funcionario"
           description="Cadastre um funcionario e associe um gestor responsavel."

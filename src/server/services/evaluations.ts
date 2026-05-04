@@ -247,6 +247,10 @@ export async function listEvaluations(filters: EvaluationHistoryFilters) {
     conditions.push(lte(evaluations.evaluationDate, filters.dateTo));
   }
 
+  if (filters.department) {
+    conditions.push(eq(employees.department, filters.department));
+  }
+
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const [totalRow] = await db.select({ value: count() }).from(evaluations).where(where);
@@ -284,6 +288,133 @@ export async function listEvaluations(filters: EvaluationHistoryFilters) {
     total: totalRow?.value ?? 0,
     totalPages: Math.max(Math.ceil((totalRow?.value ?? 0) / pageSize), 1),
   };
+}
+
+export type ManagerDailyStatus = {
+  manager: { id: string; name: string };
+  total: number;
+  done: number;
+  pending: number;
+  pct: number;
+};
+
+export type DailyEvaluationStatus = {
+  date: string;
+  totalEmployees: number;
+  totalDone: number;
+  totalPending: number;
+  pct: number;
+  managers: ManagerDailyStatus[];
+};
+
+export async function getDailyEvaluationStatus(date: string): Promise<DailyEvaluationStatus> {
+  const db = getDb();
+
+  const rows = await db
+    .select({ id: employees.id, managerId: employees.managerId, managerName: users.name })
+    .from(employees)
+    .leftJoin(users, eq(employees.managerId, users.id))
+    .where(eq(employees.active, true));
+
+  const withManager = rows.filter(
+    (r): r is typeof r & { managerId: string; managerName: string } =>
+      r.managerId !== null && r.managerName !== null,
+  );
+
+  const employeeIds = withManager.map((r) => r.id);
+
+  const doneToday =
+    employeeIds.length > 0
+      ? await db
+          .select({ employeeId: evaluations.employeeId })
+          .from(evaluations)
+          .where(
+            and(
+              inArray(evaluations.employeeId, employeeIds),
+              eq(evaluations.evaluationDate, date),
+            ),
+          )
+      : [];
+
+  const evaluatedSet = new Set(doneToday.map((e) => e.employeeId));
+
+  const managerMap = new Map<string, ManagerDailyStatus>();
+  for (const row of withManager) {
+    if (!managerMap.has(row.managerId)) {
+      managerMap.set(row.managerId, {
+        manager: { id: row.managerId, name: row.managerName },
+        total: 0,
+        done: 0,
+        pending: 0,
+        pct: 0,
+      });
+    }
+    const entry = managerMap.get(row.managerId)!;
+    entry.total++;
+    if (evaluatedSet.has(row.id)) {
+      entry.done++;
+    } else {
+      entry.pending++;
+    }
+  }
+
+  for (const entry of managerMap.values()) {
+    entry.pct = entry.total > 0 ? Math.round((entry.done / entry.total) * 100) : 0;
+  }
+
+  const managers = [...managerMap.values()].sort((a, b) => {
+    if (b.pct !== a.pct) return b.pct - a.pct;
+    return a.manager.name.localeCompare(b.manager.name);
+  });
+
+  const totalDone = doneToday.length;
+  const totalEmployees = withManager.length;
+
+  return {
+    date,
+    totalEmployees,
+    totalDone,
+    totalPending: totalEmployees - totalDone,
+    pct: totalEmployees > 0 ? Math.round((totalDone / totalEmployees) * 100) : 0,
+    managers,
+  };
+}
+
+export type ExportFilters = {
+  evaluatorId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  department?: string;
+};
+
+export async function listEvaluationsForExport(filters: ExportFilters) {
+  const db = getDb();
+  const conditions: SQL[] = [];
+
+  if (filters.evaluatorId) conditions.push(eq(evaluations.evaluatorId, filters.evaluatorId));
+  if (filters.dateFrom) conditions.push(gte(evaluations.evaluationDate, filters.dateFrom));
+  if (filters.dateTo) conditions.push(lte(evaluations.evaluationDate, filters.dateTo));
+  if (filters.department) conditions.push(eq(employees.department, filters.department));
+
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+  return db
+    .select({
+      evaluationDate: evaluations.evaluationDate,
+      score: evaluations.score,
+      note: evaluations.note,
+      employee: {
+        name: employees.name,
+        position: employees.position,
+        department: employees.department,
+      },
+      evaluator: { name: users.name },
+    })
+    .from(evaluations)
+    .innerJoin(employees, eq(evaluations.employeeId, employees.id))
+    .innerJoin(users, eq(evaluations.evaluatorId, users.id))
+    .where(where)
+    .orderBy(asc(evaluations.evaluationDate), asc(employees.name));
 }
 
 export async function getEvaluationDetail(user: CurrentUser, evaluationId: string) {

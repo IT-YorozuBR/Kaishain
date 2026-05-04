@@ -22,11 +22,11 @@ type MobileItem = {
 };
 
 const mobileItems: MobileItem[] = [
-  { href: '/', label: 'Inicio', icon: LayoutDashboard, roles: ['RH', 'GESTOR', 'ADMIN'] },
   { href: '/avaliar', label: 'Avaliar', icon: CalendarCheck, roles: ['GESTOR', 'ADMIN'] },
   { href: '/historico', label: 'Historico', icon: History, roles: ['GESTOR'] },
   { href: '/funcionarios', label: 'Funcionarios', icon: Users, roles: ['RH', 'ADMIN'] },
-  { href: '/rh/historico', label: 'Historico RH', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/historico', label: 'Historico', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/avaliacoes-do-dia', label: 'Avaliações do dia', icon: LayoutDashboard, roles: ['RH', 'ADMIN'] },
 ];
 
 export async function AppShell({ children }: AppShellProps) {

@@ -10,6 +10,7 @@ import {
   LogOut,
   Users,
 } from 'lucide-react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -36,11 +37,11 @@ type SidebarItemConfig = {
 };
 
 const items: SidebarItemConfig[] = [
-  // { href: '/', label: 'Inicio', icon: LayoutDashboard, roles: ['RH', 'GESTOR', 'ADMIN'] },
   { href: '/avaliar', label: 'Avaliar', icon: CalendarCheck, roles: ['GESTOR', 'ADMIN'] },
   { href: '/historico', label: 'Historico', icon: History, roles: ['GESTOR'] },
   { href: '/funcionarios', label: 'Funcionarios', icon: Users, roles: ['RH', 'ADMIN'] },
-  { href: '/rh/historico', label: 'Historico RH', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/historico', label: 'Avaliações', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/avaliacoes-do-dia', label: 'Avaliações do dia', icon: LayoutDashboard, roles: ['RH', 'ADMIN'] },
 ];
 
 export function AppSidebar({ user, signOutAction }: AppSidebarProps) {
@@ -53,7 +54,7 @@ export function AppSidebar({ user, signOutAction }: AppSidebarProps) {
     return localStorage.getItem('kaishain-sidebar-collapsed') === 'true';
   });
 
-  function toggleCollapsed() {
+function toggleCollapsed() {
     setCollapsed((current) => {
       const next = !current;
       localStorage.setItem('kaishain-sidebar-collapsed', String(next));

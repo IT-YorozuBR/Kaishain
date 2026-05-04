@@ -17,12 +17,16 @@ import {
 export const roleEnum = pgEnum('role', ['RH', 'GESTOR', 'ADMIN']);
 export type UserRole = (typeof roleEnum.enumValues)[number];
 
+export const turnoEnum = pgEnum('turno', ['PRIMEIRO', 'SEGUNDO', 'TERCEIRO']);
+export type Turno = (typeof turnoEnum.enumValues)[number];
+
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   role: roleEnum('role').notNull(),
+  department: text('department'),
   active: boolean('active').notNull().default(true),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -38,6 +42,8 @@ export const employees = pgTable(
     position: text('position'),
     department: text('department'),
     managerId: uuid('manager_id').references(() => users.id),
+    turno: turnoEnum('turno'),
+    equipamentos: text('equipamentos').array().notNull().default([]),
     active: boolean('active').notNull().default(true),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
