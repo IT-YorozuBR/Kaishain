@@ -51,7 +51,24 @@ export const listUsersFiltersSchema = z.object({
   page: optionalPositiveInt.default(1),
 });
 
+// Schema do formulário (client-side) — inclui confirmação para comparação
+export const changeUserPasswordFormSchema = z
+  .object({
+    password: z.string().min(8, 'Senha deve ter ao menos 8 caracteres.'),
+    confirmPassword: z.string().min(8, 'Confirmacao deve ter ao menos 8 caracteres.'),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: 'As senhas precisam ser iguais.',
+    path: ['confirmPassword'],
+  });
+
+// Schema da action (server-side) — só o campo necessário
+export const changeUserPasswordSchema = z.object({
+  password: z.string().min(8, 'Senha deve ter ao menos 8 caracteres.'),
+});
+
 export type CreateUserInput = z.output<typeof createUserSchema>;
 export type UpdateUserInput = z.output<typeof updateUserSchema>;
 export type ListUsersFiltersInput = z.input<typeof listUsersFiltersSchema>;
 export type ListUsersFilters = z.output<typeof listUsersFiltersSchema>;
+export type ChangeUserPasswordInput = z.output<typeof changeUserPasswordSchema>;

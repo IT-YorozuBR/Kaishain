@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache';
 
 import { getCurrentUser } from '@/lib/auth';
 import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from '@/lib/errors';
-import { createUserSchema, updateUserSchema } from '@/lib/validators/user';
-import { createUser, deactivateUser, updateUser } from '@/server/services/users';
+import { changeUserPasswordSchema, createUserSchema, updateUserSchema } from '@/lib/validators/user';
+import { changeUserPassword, createUser, deactivateUser, updateUser } from '@/server/services/users';
 
 export type UserActionState = {
   error?: string;
@@ -70,6 +70,39 @@ export async function updateUserAction(id: string, data: unknown): Promise<UserA
     await updateUser(user, id, parsed.data);
   } catch (error) {
     return handleUserError(error);
+  }
+
+  revalidatePath('/rh/usuarios');
+  revalidatePath(`/rh/usuarios/${id}/editar`);
+  return { success: true };
+}
+
+export type ChangePasswordActionState = {
+  error?: string;
+  success?: boolean;
+  fieldErrors?: { password?: string[] };
+};
+
+export async function changeUserPasswordAction(
+  id: string,
+  data: unknown,
+): Promise<ChangePasswordActionState> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return { error: 'Sessao expirada. Entre novamente.' };
+  }
+
+  const parsed = changeUserPasswordSchema.safeParse(data);
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
+  try {
+    await changeUserPassword(user, id, parsed.data);
+  } catch (error) {
+    const result = handleUserError(error);
+    return { error: result.error };
   }
 
   revalidatePath('/rh/usuarios');

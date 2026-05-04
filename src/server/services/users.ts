@@ -5,7 +5,7 @@ import type { CurrentUser } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { users, type UserRole } from '@/lib/db/schema';
 import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from '@/lib/errors';
-import type { CreateUserInput, UpdateUserInput } from '@/lib/validators/user';
+import type { ChangeUserPasswordInput, CreateUserInput, UpdateUserInput } from '@/lib/validators/user';
 
 const TEMP_PASSWORD = 'Kaishain@2025';
 
@@ -209,6 +209,23 @@ export async function updateUser(actor: CurrentUser, id: string, input: UpdateUs
   }
 
   return updated;
+}
+
+export async function changeUserPassword(
+  actor: CurrentUser,
+  id: string,
+  input: ChangeUserPasswordInput,
+) {
+  const target = await getUser(id);
+  assertCanManageRole(actor, target.role);
+
+  const passwordHash = await bcrypt.hash(input.password, 12);
+  const db = getDb();
+
+  await db
+    .update(users)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(users.id, id));
 }
 
 export async function deactivateUser(actor: CurrentUser, id: string) {

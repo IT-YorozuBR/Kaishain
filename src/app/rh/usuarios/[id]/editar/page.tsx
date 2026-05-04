@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { UserDeactivateButton } from '@/components/forms/UserDeactivateButton';
 import { UserForm } from '@/components/forms/UserForm';
+import { UserPasswordForm } from '@/components/forms/UserPasswordForm';
 import { AppShell } from '@/components/layout/AppShell';
 import { FormCard } from '@/components/layout/FormCard';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getCurrentUser } from '@/lib/auth';
 import { NotFoundError } from '@/lib/errors';
 import type { UserRoleValue } from '@/lib/validators/user';
-import { updateUserAction } from '@/server/actions/users';
+import { changeUserPasswordAction, updateUserAction } from '@/server/actions/users';
 import { getUser } from '@/server/services/users';
 
 type EditarUsuarioPageProps = {
@@ -65,6 +66,10 @@ export default async function EditarUsuarioPage({ params }: EditarUsuarioPagePro
             showActive
             action={updateUserAction.bind(null, user.id)}
           />
+        </FormCard>
+
+        <FormCard title="Alterar senha">
+          <UserPasswordForm action={changeUserPasswordAction.bind(null, user.id)} />
         </FormCard>
 
         {user.active ? (
