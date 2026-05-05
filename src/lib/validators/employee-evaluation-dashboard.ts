@@ -7,7 +7,7 @@ const optionalDate = z
   .pipe(
     z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data invalida.')
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.')
       .optional(),
   );
 
@@ -18,7 +18,7 @@ const optionalPositiveInt = z
   .pipe(z.number().int().positive().optional());
 
 export const employeeEvaluationDashboardParamsSchema = z.object({
-  employeeId: z.uuid('Funcionario invalido.'),
+  employeeId: z.uuid('Funcionário inválido.'),
 });
 
 export const employeeEvaluationDashboardFiltersSchema = z.object({

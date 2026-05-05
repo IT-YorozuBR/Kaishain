@@ -30,10 +30,10 @@ type MobileItem = {
 
 const mobileItems: MobileItem[] = [
   { href: '/avaliar', label: 'Avaliar', icon: CalendarCheck, roles: ['GESTOR', 'ADMIN'] },
-  { href: '/historico', label: 'Historico', icon: History, roles: ['GESTOR'] },
-  { href: '/funcionarios', label: 'Funcionarios', icon: Users, roles: ['RH', 'ADMIN'] },
-  { href: '/rh/usuarios', label: 'Usuarios', icon: UserCog, roles: ['RH', 'ADMIN'] },
-  { href: '/rh/historico', label: 'Historico', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
+  { href: '/historico', label: 'Histórico', icon: History, roles: ['GESTOR'] },
+  { href: '/funcionarios', label: 'Funcionários', icon: Users, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/usuarios', label: 'Usuários', icon: UserCog, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/historico', label: 'Histórico', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
   {
     href: '/rh/avaliacoes-do-dia',
     label: 'Avaliações do dia',

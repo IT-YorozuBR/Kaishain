@@ -159,3 +159,61 @@ Principalmente sobre:
 Quem pode avaliar quem
 Regras de edição de avaliação
 Hierarquia
+
+## Regra obrigatória de idioma e acentuação
+
+Todo texto visível ao usuário deve estar escrito em português brasileiro correto, com acentuação, cedilha e pontuação adequadas.
+
+Regras obrigatórias:
+- Usar português brasileiro formal, claro e natural.
+- Corrigir palavras sem acento, como:
+  - funcionario → funcionário
+  - usuario → usuário
+  - avaliacao → avaliação
+  - configuracao → configuração
+  - informacoes → informações
+  - relatorio → relatório
+  - manutencao → manutenção
+  - producao → produção
+  - solicitacao → solicitação
+  - area → área
+  - necessario → necessário
+  - responsavel → responsável
+  - historico → histórico
+  - grafico → gráfico
+  - pagina → página
+- Corrigir também textos de botões, menus, títulos, labels, placeholders, mensagens de erro, mensagens de sucesso, tooltips, cards, tabelas e modais.
+- Não deixar texto de interface sem acentuação.
+- Não alterar nomes técnicos, nomes de variáveis, rotas, slugs, enums, campos do banco de dados, imports, nomes de arquivos ou chaves internas.
+- Não alterar valores que fazem parte de lógica do sistema, API ou banco de dados.
+- Corrigir apenas textos exibidos ao usuário.
+- Antes de finalizar qualquer alteração visual ou funcional, revisar se todos os textos da interface estão em português brasileiro correto.
+
+## Regra obrigatória de idioma e acentuação
+
+Todo texto visível ao usuário deve estar escrito em português brasileiro correto, com acentuação, cedilha e pontuação adequadas.
+
+Regras obrigatórias:
+- Usar português brasileiro formal, claro e natural.
+- Corrigir palavras sem acento, como:
+  - funcionario → funcionário
+  - usuario → usuário
+  - avaliacao → avaliação
+  - configuracao → configuração
+  - informacoes → informações
+  - relatorio → relatório
+  - manutencao → manutenção
+  - producao → produção
+  - solicitacao → solicitação
+  - area → área
+  - necessario → necessário
+  - responsavel → responsável
+  - historico → histórico
+  - grafico → gráfico
+  - pagina → página
+- Corrigir também textos de botões, menus, títulos, labels, placeholders, mensagens de erro, mensagens de sucesso, tooltips, cards, tabelas e modais.
+- Não deixar texto de interface sem acentuação.
+- Não alterar nomes técnicos, nomes de variáveis, rotas, slugs, enums, campos do banco de dados, imports, nomes de arquivos ou chaves internas.
+- Não alterar valores que fazem parte de lógica do sistema, API ou banco de dados.
+- Corrigir apenas textos exibidos ao usuário.
+- Antes de finalizar qualquer alteração visual ou funcional, revisar se todos os textos da interface estão em português brasileiro correto.

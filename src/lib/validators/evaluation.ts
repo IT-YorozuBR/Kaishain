@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
 export const createEvaluationSchema = z.object({
-  employeeId: z.uuid('Funcionario invalido.'),
-  score: z.coerce.number().int().min(0, 'A nota minima e 0.').max(10, 'A nota maxima e 10.'),
+  employeeId: z.uuid('Funcionário inválido.'),
+  score: z.coerce.number().int().min(0, 'A nota mínima é 0.').max(10, 'A nota máxima é 10.'),
   note: z
     .string()
     .trim()
-    .max(2000, 'A observacao deve ter no maximo 2000 caracteres.')
+    .max(2000, 'A observação deve ter no máximo 2000 caracteres.')
     .optional()
     .transform((value) => (value ? value : null)),
   checklistResults: z
     .array(
       z.object({
-        checklistItemId: z.uuid('Item de checklist invalido.'),
+        checklistItemId: z.uuid('Item de checklist inválido.'),
         checked: z.coerce.boolean(),
       }),
     )

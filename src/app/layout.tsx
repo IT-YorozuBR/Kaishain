@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Kaishain',
-  description: 'Plataforma interna de avaliacao e acompanhamento de funcionarios',
+  description: 'Plataforma interna de avaliação e acompanhamento de funcionários',
 };
 
 export default function RootLayout({

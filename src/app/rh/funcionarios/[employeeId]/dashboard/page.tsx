@@ -119,7 +119,7 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
   const parsedParams = employeeEvaluationDashboardParamsSchema.safeParse(rawParams);
 
   if (!parsedParams.success) {
-    throw new ValidationError('Funcionario invalido.');
+    throw new ValidationError('Funcionário inválido.');
   }
 
   const rawSearchParams = searchParams ? await searchParams : {};
@@ -131,7 +131,7 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
   });
 
   if (!parsedFilters.success) {
-    throw new ValidationError('Filtros invalidos.');
+    throw new ValidationError('Filtros inválidos.');
   }
 
   let dashboard;
@@ -146,8 +146,8 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
       return (
         <AppShell>
           <EmptyState
-            title="Funcionario nao encontrado"
-            description="Nao foi possivel localizar o cadastro solicitado."
+            title="Funcionário não encontrado"
+            description="Não foi possível localizar o cadastro solicitado."
           />
         </AppShell>
       );
@@ -164,7 +164,7 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
       <div className="grid gap-6">
         <PageHeader
           title={`Dashboard - ${employee.name}`}
-          description="Acompanhe desempenho, notas e checklist do funcionario."
+          description="Acompanhe desempenho, notas e checklist do funcionário."
           actions={
             <Link href="/funcionarios" className={buttonVariants({ variant: 'outline' })}>
               <ArrowLeft />
@@ -189,7 +189,7 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
               <span className="font-medium">{employee.manager?.name ?? '-'}</span>
             </div>
             <div className="grid gap-1">
-              <span className="text-muted-foreground text-sm">Matricula</span>
+              <span className="text-muted-foreground text-sm">Matrícula</span>
               <span className="font-medium">{employee.registration ?? '-'}</span>
             </div>
             <div className="grid gap-1">
@@ -221,11 +221,11 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
             />
           </div>
           <div className="grid gap-1">
-            <Label htmlFor="dateTo">Ate</Label>
+            <Label htmlFor="dateTo">Até</Label>
             <Input id="dateTo" name="dateTo" type="date" defaultValue={parsedFilters.data.dateTo} />
           </div>
           <div className="grid gap-1">
-            <Label htmlFor="pageSize">Por pagina</Label>
+            <Label htmlFor="pageSize">Por página</Label>
             <select
               id="pageSize"
               name="pageSize"
@@ -252,30 +252,30 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            label="Nota media"
+            label="Nota média"
             value={metrics.averageScore ?? '-'}
-            description={`${metrics.totalEvaluations} avaliacao(oes)`}
+            description={`${metrics.totalEvaluations} avaliação(ões)`}
             icon={Star}
           />
           <MetricCard
             label="Maior nota"
             value={metrics.highestScore ?? '-'}
-            description="Melhor resultado no periodo"
+            description="Melhor resultado no período"
             icon={TrendingUp}
           />
           <MetricCard
             label="Menor nota"
             value={metrics.lowestScore ?? '-'}
-            description="Ponto de atencao no periodo"
+            description="Ponto de atenção no período"
             icon={TrendingDown}
           />
           <MetricCard
-            label="Ultima nota"
+            label="Última nota"
             value={metrics.lastEvaluation?.score ?? '-'}
             description={
               metrics.lastEvaluation
                 ? formatSaoPauloDisplayDate(metrics.lastEvaluation.evaluationDate)
-                : 'Sem avaliacao'
+                : 'Sem avaliação'
             }
             icon={CalendarDays}
           />
@@ -286,15 +286,15 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="size-4" />
-                Distribuicao de notas
+                Distribuição de notas
               </CardTitle>
-              <CardDescription>Quantidade de avaliacoes por faixa.</CardDescription>
+              <CardDescription>Quantidade de avaliações por faixa.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
               {[
-                { label: 'Critico (0-4)', value: metrics.scoreBuckets.critical, status: 'danger' },
+                { label: 'Crítico (0-4)', value: metrics.scoreBuckets.critical, status: 'danger' },
                 {
-                  label: 'Atencao (5-6)',
+                  label: 'Atenção (5-6)',
                   value: metrics.scoreBuckets.attention,
                   status: 'pending',
                 },
@@ -326,7 +326,7 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
             <CardContent>
               {dashboard.checklistStats.length === 0 ? (
                 <div className="text-muted-foreground rounded-xl border border-dashed p-6 text-sm">
-                  Nenhum checklist encontrado no periodo.
+                  Nenhum checklist encontrado no período.
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-xl border">
@@ -358,16 +358,16 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle2 className="size-4" />
-              Historico de avaliacoes
+              Histórico de avaliações
             </CardTitle>
             <CardDescription>
-              Pagina {page} de {history.totalPages} - {history.total} avaliacao(oes)
+              Página {page} de {history.totalPages} - {history.total} avaliação(ões)
             </CardDescription>
           </CardHeader>
           <CardContent>
             {history.items.length === 0 ? (
               <div className="text-muted-foreground rounded-xl border border-dashed p-6 text-sm">
-                Nenhuma avaliacao encontrada no periodo.
+                Nenhuma avaliação encontrada no período.
               </div>
             ) : (
               <div className="overflow-hidden rounded-xl border">
@@ -377,7 +377,7 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
                       <TableHead>Data</TableHead>
                       <TableHead>Nota</TableHead>
                       <TableHead>Avaliador</TableHead>
-                      <TableHead>Observacao</TableHead>
+                      <TableHead>Observação</TableHead>
                       <TableHead />
                     </TableRow>
                   </TableHeader>
@@ -430,7 +430,7 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
                 Anterior
               </Link>
               <span className="text-muted-foreground text-sm">
-                Media calculada sobre o periodo filtrado.
+                Média calculada sobre o período filtrado.
               </span>
               <Link
                 href={buildPageHref({
@@ -446,7 +446,7 @@ export default async function EmployeeDashboardPage({ params, searchParams }: Pa
                 )}
                 aria-disabled={page >= history.totalPages}
               >
-                Proxima
+                Próxima
               </Link>
             </div>
           </CardContent>

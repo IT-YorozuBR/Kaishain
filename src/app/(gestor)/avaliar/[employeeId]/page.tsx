@@ -56,10 +56,10 @@ export default async function AvaliarFuncionarioPage({ params }: AvaliarFunciona
 
         <PageHeader
           title={employee.name}
-          description={`Avaliacao de ${formatSaoPauloDisplayDate(today)}. Pode ser editada ate 23:59 em America/Sao_Paulo.`}
+          description={`Avaliação de ${formatSaoPauloDisplayDate(today)}. Pode ser editada até 23:59 em America/Sao_Paulo.`}
           meta={
             evaluation ? (
-              <StatusBadge status="success">Avaliacao existente</StatusBadge>
+              <StatusBadge status="success">Avaliação existente</StatusBadge>
             ) : (
               <StatusBadge status="pending">Pendente</StatusBadge>
             )
@@ -67,8 +67,8 @@ export default async function AvaliarFuncionarioPage({ params }: AvaliarFunciona
         />
 
         <FormCard
-          title="Avaliacao diaria"
-          description="Preencha o checklist, informe a nota de 0 a 10 e registre uma observacao se necessario."
+          title="Avaliação diária"
+          description="Preencha o checklist, informe a nota de 0 a 10 e registre uma observação se necessário."
         >
             <EvaluationForm
               employeeId={employee.id}

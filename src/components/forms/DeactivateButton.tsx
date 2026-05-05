@@ -46,13 +46,13 @@ export function DeactivateButton({ id, employeeName }: DeactivateButtonProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button type="button" variant="destructive" />}>
-        Desativar funcionario
+        Desativar funcionário
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Desativar {employeeName}?</DialogTitle>
           <DialogDescription>
-            O funcionario nao aparecera mais na tela de avaliacao. O historico de avaliacoes sera
+            O funcionário não aparecerá mais na tela de avaliação. O histórico de avaliações será
             preservado.
           </DialogDescription>
         </DialogHeader>
@@ -62,7 +62,7 @@ export function DeactivateButton({ id, employeeName }: DeactivateButtonProps) {
             Cancelar
           </Button>
           <Button type="button" variant="destructive" onClick={handleConfirm} disabled={pending}>
-            {pending ? 'Desativando...' : 'Confirmar desativacao'}
+            {pending ? 'Desativando...' : 'Confirmar desativação'}
           </Button>
         </DialogFooter>
       </DialogContent>

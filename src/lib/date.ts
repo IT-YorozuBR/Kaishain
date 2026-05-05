@@ -13,7 +13,7 @@ export function getSaoPauloTodayDateString(date = new Date()) {
   const day = parts.find((part) => part.type === 'day')?.value;
 
   if (!year || !month || !day) {
-    throw new Error('Nao foi possivel calcular a data de hoje.');
+    throw new Error('Não foi possível calcular a data de hoje.');
   }
 
   return `${year}-${month}-${day}`;

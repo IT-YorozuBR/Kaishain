@@ -10,7 +10,7 @@ const emptyToNull = z
 
 export const createUserSchema = z.object({
   name: z.string().trim().min(2, 'Nome deve ter ao menos 2 caracteres.').max(255),
-  email: z.email('E-mail invalido.').trim().toLowerCase().max(255),
+  email: z.email('E-mail inválido.').trim().toLowerCase().max(255),
   role: z.enum(USER_ROLES),
   department: emptyToNull.pipe(z.string().max(255).nullable()),
 });
@@ -55,7 +55,7 @@ export const listUsersFiltersSchema = z.object({
 export const changeUserPasswordFormSchema = z
   .object({
     password: z.string().min(8, 'Senha deve ter ao menos 8 caracteres.'),
-    confirmPassword: z.string().min(8, 'Confirmacao deve ter ao menos 8 caracteres.'),
+    confirmPassword: z.string().min(8, 'Confirmação deve ter ao menos 8 caracteres.'),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: 'As senhas precisam ser iguais.',

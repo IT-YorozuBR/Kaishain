@@ -49,7 +49,7 @@ export function EmployeesTable({ employees }: EmployeesTableProps) {
           {employees.length === 0 ? (
             <TableRow>
               <TableCell colSpan={8} className="text-muted-foreground h-24 text-center">
-                Nenhum funcionario encontrado.
+                Nenhum funcionário encontrado.
               </TableCell>
             </TableRow>
           ) : (

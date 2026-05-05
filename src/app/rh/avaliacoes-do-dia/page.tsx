@@ -69,7 +69,7 @@ function ManagerCard({ manager, selected }: { manager: ManagerDailyStatus; selec
                 <CardTitle className="text-base">{manager.manager.name}</CardTitle>
               </div>
               <CardDescription>
-                {manager.total} funcionario{manager.total !== 1 ? 's' : ''} no time
+                {manager.total} funcionário{manager.total !== 1 ? 's' : ''} no time
               </CardDescription>
             </div>
             <span
@@ -115,7 +115,7 @@ function ManagerDetailsPanel({ details }: { details: ManagerDailyEvaluationDetai
         <div className="grid gap-1">
           <h2 className="text-lg font-semibold">Detalhe do gestor</h2>
           <p className="text-muted-foreground text-sm">
-            {details.manager.name} - {details.done} de {details.total} funcionarios avaliados
+            {details.manager.name} - {details.done} de {details.total} funcionários avaliados
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -132,8 +132,8 @@ function ManagerDetailsPanel({ details }: { details: ManagerDailyEvaluationDetai
 
       {details.total === 0 ? (
         <EmptyState
-          title="Nenhum funcionario neste time"
-          description="Este gestor nao possui funcionarios ativos vinculados."
+          title="Nenhum funcionário neste time"
+          description="Este gestor não possui funcionários ativos vinculados."
         />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -169,7 +169,7 @@ function ManagerDetailsPanel({ details }: { details: ManagerDailyEvaluationDetai
               </div>
             ) : (
               <div className="text-muted-foreground rounded-xl border border-dashed p-6 text-sm">
-                Nenhuma avaliacao realizada para este gestor hoje.
+                Nenhuma avaliação realizada para este gestor hoje.
               </div>
             )}
           </div>
@@ -202,7 +202,7 @@ function ManagerDetailsPanel({ details }: { details: ManagerDailyEvaluationDetai
               </div>
             ) : (
               <div className="text-muted-foreground rounded-xl border border-dashed p-6 text-sm">
-                Todos os funcionarios deste gestor foram avaliados hoje.
+                Todos os funcionários deste gestor foram avaliados hoje.
               </div>
             )}
           </div>
@@ -234,7 +234,7 @@ export default async function AvaliacoesDoDiaPage({ searchParams }: PageProps) {
   const status = await getDailyEvaluationStatus(today);
 
   let selectedManagerDetails: ManagerDailyEvaluationDetails | null = null;
-  let selectionError: string | null = invalidSelection ? 'Gestor invalido.' : null;
+  let selectionError: string | null = invalidSelection ? 'Gestor inválido.' : null;
 
   if (selectedManagerId) {
     try {
@@ -259,8 +259,8 @@ export default async function AvaliacoesDoDiaPage({ searchParams }: PageProps) {
     <AppShell>
       <div className="grid gap-6">
         <PageHeader
-          title="Avaliacoes do dia"
-          description="Acompanhe em tempo real quantas avaliacoes ja foram realizadas e quais ainda estao pendentes."
+          title="Avaliações do dia"
+          description="Acompanhe em tempo real quantas avaliações já foram realizadas e quais ainda estão pendentes."
           meta={
             <Badge variant="secondary" className="w-fit">
               <CalendarDays className="size-3" />
@@ -293,7 +293,7 @@ export default async function AvaliacoesDoDiaPage({ searchParams }: PageProps) {
               bg: 'bg-amber-50',
             },
             {
-              label: 'Concluido',
+              label: 'Concluído',
               value: `${status.pct}%`,
               icon: Percent,
               color: 'text-purple-700',
@@ -321,8 +321,8 @@ export default async function AvaliacoesDoDiaPage({ searchParams }: PageProps) {
 
         {status.totalEmployees === 0 ? (
           <EmptyState
-            title="Nenhum funcionario com gestor"
-            description="Nao ha funcionarios ativos vinculados a um gestor para acompanhar."
+            title="Nenhum funcionário com gestor"
+            description="Não há funcionários ativos vinculados a um gestor para acompanhar."
           />
         ) : (
           <>
@@ -330,7 +330,7 @@ export default async function AvaliacoesDoDiaPage({ searchParams }: PageProps) {
               <div className="flex items-center justify-between gap-4">
                 <span className="text-sm font-medium">Progresso geral</span>
                 <span className="text-muted-foreground text-sm">
-                  {status.totalDone} de {status.totalEmployees} funcionarios avaliados
+                  {status.totalDone} de {status.totalEmployees} funcionários avaliados
                 </span>
               </div>
               <div className="bg-muted h-3 overflow-hidden rounded-full">
@@ -360,7 +360,7 @@ export default async function AvaliacoesDoDiaPage({ searchParams }: PageProps) {
                 <div className="flex items-center gap-2">
                   <Clock className="size-4 text-amber-500" />
                   <h2 className="text-foreground font-semibold">
-                    Gestores com pendencias
+                    Gestores com pendências
                     <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
                       {pendingManagers.length}
                     </span>
@@ -406,7 +406,7 @@ export default async function AvaliacoesDoDiaPage({ searchParams }: PageProps) {
             ) : (
               <section className="text-muted-foreground rounded-xl border border-dashed p-6 text-sm">
                 {selectionError ??
-                  'Selecione um gestor para ver os funcionarios avaliados e pendentes.'}
+                  'Selecione um gestor para ver os funcionários avaliados e pendentes.'}
               </section>
             )}
           </>

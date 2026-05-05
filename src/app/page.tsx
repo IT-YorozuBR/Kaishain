@@ -19,7 +19,7 @@ export default async function Home() {
       <div className="grid gap-6">
         <PageHeader
           title="Kaishain"
-          description={`Ola, ${session.user.name ?? session.user.email}. A autenticacao esta ativa.`}
+          description={`Olá, ${session.user.name ?? session.user.email}. A autenticação está ativa.`}
           meta={<Badge variant="secondary">{session.user.role}</Badge>}
         />
 
@@ -28,12 +28,12 @@ export default async function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ClipboardCheck className="size-4" />
-                Avaliacoes
+                Avaliações
               </CardTitle>
-              <CardDescription>Fluxo diario dos gestores.</CardDescription>
+              <CardDescription>Fluxo diário dos gestores.</CardDescription>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">
-              Proximo passo: tela de avaliacao por liderado.
+              Próximo passo: tela de avaliação por liderado.
             </CardContent>
           </Card>
 
@@ -41,12 +41,12 @@ export default async function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="size-4" />
-                Funcionarios
+                Funcionários
               </CardTitle>
-              <CardDescription>Gestao de cadastros para RH e ADMIN.</CardDescription>
+              <CardDescription>Gestão de cadastros para RH e ADMIN.</CardDescription>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">
-              As permissoes finais devem continuar no server.
+              As permissões finais devem continuar no server.
             </CardContent>
           </Card>
 
@@ -54,12 +54,12 @@ export default async function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShieldCheck className="size-4" />
-                Seguranca
+                Segurança
               </CardTitle>
               <CardDescription>Auth.js, JWT e proxy configurados.</CardDescription>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">
-              Rotas privadas redirecionam para login quando nao ha sessao.
+              Rotas privadas redirecionam para login quando não há sessão.
             </CardContent>
           </Card>
         </section>

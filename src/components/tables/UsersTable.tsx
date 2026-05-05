@@ -52,7 +52,7 @@ export function UsersTable({ users }: UsersTableProps) {
           {users.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-muted-foreground h-24 text-center">
-                Nenhum usuario encontrado.
+                Nenhum usuário encontrado.
               </TableCell>
             </TableRow>
           ) : (

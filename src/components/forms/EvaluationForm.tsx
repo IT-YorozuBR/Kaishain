@@ -118,14 +118,14 @@ export function EvaluationForm({
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="note">Observacao</Label>
+        <Label htmlFor="note">Observação</Label>
         <textarea
           id="note"
           name="note"
           defaultValue={initialNote ?? ''}
           rows={5}
           className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 min-h-28 w-full rounded-lg border bg-transparent px-3 py-2 text-sm transition-colors outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="Registre contexto importante sobre a avaliacao do dia."
+          placeholder="Registre contexto importante sobre a avaliação do dia."
           aria-invalid={Boolean(state.fieldErrors?.note)}
         />
         {state.fieldErrors?.note ? (
@@ -146,7 +146,7 @@ export function EvaluationForm({
 
       <Button type="submit" className="w-fit" disabled={pending}>
         <Save data-icon="inline-start" />
-        {pending ? 'Salvando...' : 'Salvar avaliacao'}
+        {pending ? 'Salvando...' : 'Salvar avaliação'}
       </Button>
     </form>
   );

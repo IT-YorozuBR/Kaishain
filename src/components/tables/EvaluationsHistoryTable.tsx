@@ -28,11 +28,11 @@ export function EvaluationsHistoryTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Funcionario</TableHead>
+            <TableHead>Funcionário</TableHead>
             <TableHead>Data</TableHead>
             <TableHead>Nota</TableHead>
             {showEvaluator ? <TableHead>Avaliador</TableHead> : null}
-            <TableHead>Observacao</TableHead>
+            <TableHead>Observação</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -43,7 +43,7 @@ export function EvaluationsHistoryTable({
                 colSpan={showEvaluator ? 6 : 5}
                 className="h-24 text-center text-muted-foreground"
               >
-                Nenhuma avaliacao encontrada.
+                Nenhuma avaliação encontrada.
               </TableCell>
             </TableRow>
           ) : (

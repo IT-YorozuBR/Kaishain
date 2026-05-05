@@ -50,7 +50,7 @@ export default async function HistoricoDetalhePage({ params }: HistoricoDetalheP
     <AppShell>
       <div className="grid max-w-3xl gap-6">
         <PageHeader
-          title="Detalhe da avaliacao"
+          title="Detalhe da avaliação"
           description={`${evaluation.employee.name} em ${formatSaoPauloDisplayDate(evaluation.evaluationDate)}`}
           meta={<Badge variant="outline">{evaluation.score}/10</Badge>}
         />
@@ -61,7 +61,7 @@ export default async function HistoricoDetalhePage({ params }: HistoricoDetalheP
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1">
-              <span className="text-xs font-medium uppercase text-muted-foreground">Funcionario</span>
+              <span className="text-xs font-medium uppercase text-muted-foreground">Funcionário</span>
               <span>{evaluation.employee.name}</span>
             </div>
             <div className="grid gap-1">
@@ -77,7 +77,7 @@ export default async function HistoricoDetalhePage({ params }: HistoricoDetalheP
               <span>{evaluation.employee.department ?? '-'}</span>
             </div>
             <div className="grid gap-1 sm:col-span-2">
-              <span className="text-xs font-medium uppercase text-muted-foreground">Observacao</span>
+              <span className="text-xs font-medium uppercase text-muted-foreground">Observação</span>
               <p className="whitespace-pre-wrap text-sm">{evaluation.note ?? '-'}</p>
             </div>
           </CardContent>
@@ -118,7 +118,7 @@ export default async function HistoricoDetalhePage({ params }: HistoricoDetalheP
                         ) : (
                           <Badge variant="secondary">
                             <X className="size-3" />
-                            Nao
+                            Não
                           </Badge>
                         )}
                       </TableCell>

@@ -29,7 +29,7 @@ export async function evaluateEmployee(
   }
 
   if (user.role !== 'GESTOR' && user.role !== 'ADMIN') {
-    return { error: 'Usuario sem permissao para avaliar funcionarios.' };
+    return { error: 'Usuário sem permissão para avaliar funcionários.' };
   }
 
   const checklistItemIds = formData.getAll('checklistItemId').map(String);
@@ -75,5 +75,5 @@ export async function evaluateEmployee(
   revalidatePath('/avaliar');
   revalidatePath(`/avaliar/${parsed.data.employeeId}`);
 
-  return { success: 'Avaliacao salva com sucesso.' };
+  return { success: 'Avaliação salva com sucesso.' };
 }

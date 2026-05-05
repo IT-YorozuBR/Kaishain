@@ -4,7 +4,7 @@ const optionalUuid = z
   .string()
   .trim()
   .transform((value) => (value === '' ? undefined : value))
-  .pipe(z.string().uuid('Gestor invalido.').optional());
+  .pipe(z.string().uuid('Gestor inválido.').optional());
 
 export const dailyEvaluationStatusFiltersSchema = z.object({
   gestorId: optionalUuid.optional(),

@@ -76,11 +76,11 @@ export default async function UsuariosPage({ searchParams }: UsuariosPageProps) 
     <AppShell>
       <div className="grid gap-6">
         <PageHeader
-          title="Usuarios"
-          description="Gerencie usuarios de acesso ao sistema."
+          title="Usuários"
+          description="Gerencie usuários de acesso ao sistema."
           actions={
             <Link href="/rh/usuarios/novo" className={cn(buttonVariants(), 'shrink-0')}>
-              Novo usuario
+              Novo usuário
             </Link>
           }
         />
@@ -143,7 +143,7 @@ export default async function UsuariosPage({ searchParams }: UsuariosPageProps) 
 
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <span className="text-muted-foreground">
-            Pagina {page} de {totalPages} - {total} usuario(s)
+            Página {page} de {totalPages} - {total} usuário(s)
           </span>
           <div className="flex gap-2">
             <Link
@@ -164,7 +164,7 @@ export default async function UsuariosPage({ searchParams }: UsuariosPageProps) 
               )}
               aria-disabled={page >= totalPages}
             >
-              Proxima
+              Próxima
             </Link>
           </div>
         </div>

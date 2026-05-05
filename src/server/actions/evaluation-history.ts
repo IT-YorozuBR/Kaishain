@@ -12,13 +12,13 @@ export async function listEvaluationHistoryAction(input: EvaluationHistoryFilter
   const user = await getCurrentUser();
 
   if (!user) {
-    throw new UnauthorizedError('Sessao expirada. Entre novamente.');
+    throw new UnauthorizedError('Sessão expirada. Entre novamente.');
   }
 
   const parsed = evaluationHistoryFiltersSchema.safeParse(input);
 
   if (!parsed.success) {
-    throw new ValidationError('Filtros invalidos.');
+    throw new ValidationError('Filtros inválidos.');
   }
 
   const filters = parsed.data;

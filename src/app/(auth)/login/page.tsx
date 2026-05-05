@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             K
           </div>
           <CardTitle className="text-xl">Kaishain</CardTitle>
-          <CardDescription>Acesse sua area de avaliacao de funcionarios.</CardDescription>
+          <CardDescription>Acesse sua área de avaliação de funcionários.</CardDescription>
         </CardHeader>
         <CardContent>
           <LoginForm redirectTo={callbackUrl} />

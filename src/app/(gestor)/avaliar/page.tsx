@@ -120,8 +120,8 @@ export default async function AvaliarPage({ searchParams }: PageProps) {
     <AppShell>
       <div className="grid gap-6">
         <PageHeader
-          title="Avaliar funcionarios"
-          description={`Avaliacoes de hoje em America/Sao_Paulo: ${formatSaoPauloDisplayDate(today)}.`}
+          title="Avaliar funcionários"
+          description={`Avaliações de hoje em America/Sao_Paulo: ${formatSaoPauloDisplayDate(today)}.`}
           meta={
             <Badge variant="secondary" className="w-fit">
               <CalendarDays className="size-3" />
@@ -135,7 +135,7 @@ export default async function AvaliarPage({ searchParams }: PageProps) {
             { label: 'Total', value: dashboard.length, icon: Users },
             { label: 'Avaliados', value: evaluatedCount, icon: CheckCircle2 },
             { label: 'Pendentes', value: pendingCount, icon: CircleAlert },
-            { label: 'Concluido', value: `${completionRate}%`, icon: Percent },
+            { label: 'Concluído', value: `${completionRate}%`, icon: Percent },
           ].map((metric) => {
             const Icon = metric.icon;
             return (
@@ -160,21 +160,21 @@ export default async function AvaliarPage({ searchParams }: PageProps) {
           className="bg-card flex flex-wrap items-end gap-3 rounded-xl border p-4 shadow-sm"
         >
           <div className="grid flex-1 gap-1 sm:max-w-sm">
-            <Label htmlFor="search">Buscar funcionario</Label>
+            <Label htmlFor="search">Buscar funcionário</Label>
             <input type="hidden" name="page" value="1" />
             <div className="relative">
               <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
               <Input
                 id="search"
                 name="search"
-                placeholder="Nome, matricula, cargo ou setor"
+                placeholder="Nome, matrícula, cargo ou setor"
                 defaultValue={search ?? ''}
                 className="pl-8"
               />
             </div>
           </div>
           <div className="grid gap-1">
-            <Label htmlFor="pageSize">Por pagina</Label>
+            <Label htmlFor="pageSize">Por página</Label>
             <select
               id="pageSize"
               name="pageSize"
@@ -195,30 +195,30 @@ export default async function AvaliarPage({ searchParams }: PageProps) {
             </Link>
           ) : null}
           <span className="text-muted-foreground text-sm">
-            {filteredDashboard.length} de {dashboard.length} funcionario
+            {filteredDashboard.length} de {dashboard.length} funcionário
             {dashboard.length !== 1 ? 's' : ''}
           </span>
         </form>
 
         {dashboard.length === 0 ? (
           <EmptyState
-            title="Nenhum funcionario encontrado"
-            description="Nao ha funcionarios ativos associados ao seu usuario para avaliacao."
+            title="Nenhum funcionário encontrado"
+            description="Não há funcionários ativos associados ao seu usuário para avaliação."
           />
         ) : filteredDashboard.length === 0 ? (
           <EmptyState
             title="Nenhum resultado encontrado"
-            description="Ajuste a busca para localizar um funcionario da sua equipe."
+            description="Ajuste a busca para localizar um funcionário da sua equipe."
           />
         ) : (
           <section className="bg-card grid gap-3 rounded-xl border p-4 shadow-sm">
             <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-3 text-sm">
               <span>
-                Exibindo {displayStart}-{displayEnd} de {totalFilteredItems} funcionario
+                Exibindo {displayStart}-{displayEnd} de {totalFilteredItems} funcionário
                 {totalFilteredItems !== 1 ? 's' : ''}
               </span>
               <span>
-                Pagina {currentPage} de {totalPages}
+                Página {currentPage} de {totalPages}
               </span>
             </div>
 
@@ -234,7 +234,7 @@ export default async function AvaliarPage({ searchParams }: PageProps) {
                     </div>
                     <CardDescription>
                       {[employee.position, employee.department].filter(Boolean).join(' - ') ||
-                        'Cargo nao informado'}
+                        'Cargo não informado'}
                     </CardDescription>
                   </div>
                   <div className="text-muted-foreground text-sm">
@@ -244,7 +244,7 @@ export default async function AvaliarPage({ searchParams }: PageProps) {
                     href={`/avaliar/${employee.id}`}
                     className={buttonVariants({ variant: 'outline' })}
                   >
-                    {evaluation ? 'Ver avaliacao' : 'Avaliar'}
+                    {evaluation ? 'Ver avaliação' : 'Avaliar'}
                     <ArrowRight data-icon="inline-end" />
                   </Link>
                 </CardContent>
@@ -274,7 +274,7 @@ export default async function AvaliarPage({ searchParams }: PageProps) {
                 )}
 
                 <span className="text-muted-foreground text-sm">
-                  Pagina {currentPage} de {totalPages}
+                  Página {currentPage} de {totalPages}
                 </span>
 
                 {currentPage < totalPages ? (
@@ -286,14 +286,14 @@ export default async function AvaliarPage({ searchParams }: PageProps) {
                     })}
                     className={buttonVariants({ variant: 'outline' })}
                   >
-                    Proxima
+                    Próxima
                   </Link>
                 ) : (
                   <span
                     className={buttonVariants({ variant: 'outline', className: 'opacity-50' })}
                     aria-disabled="true"
                   >
-                    Proxima
+                    Próxima
                   </span>
                 )}
               </div>

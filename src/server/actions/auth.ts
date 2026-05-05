@@ -51,7 +51,7 @@ export async function loginAction(
   } catch (error) {
     if (error instanceof AuthError) {
       return {
-        error: 'Credenciais invalidas ou usuario inativo.',
+        error: 'Credenciais inválidas ou usuário inativo.',
       };
     }
 

@@ -26,7 +26,7 @@ export type ListUsersResult = {
 
 function requireRhOrAdmin(user: CurrentUser) {
   if (user.role !== 'RH' && user.role !== 'ADMIN') {
-    throw new UnauthorizedError('Apenas RH e administradores podem gerenciar usuarios.');
+    throw new UnauthorizedError('Apenas RH e administradores podem gerenciar usuários.');
   }
 }
 
@@ -42,7 +42,7 @@ function assertCanManageRole(actor: CurrentUser, targetRole: UserRole) {
   requireRhOrAdmin(actor);
 
   if (!canManageRole(actor, targetRole)) {
-    throw new UnauthorizedError('Voce nao pode gerenciar usuarios com esta permissao.');
+    throw new UnauthorizedError('Você não pode gerenciar usuários com esta permissão.');
   }
 }
 
@@ -126,7 +126,7 @@ export async function getUser(id: string): Promise<SystemUser> {
     .where(eq(users.id, id));
 
   if (!user) {
-    throw new NotFoundError('Usuario nao encontrado.');
+    throw new NotFoundError('Usuário não encontrado.');
   }
 
   return user;
@@ -146,7 +146,7 @@ async function assertEmailUnique(email: string, excludeId?: string) {
     .where(and(...conditions));
 
   if (existing) {
-    throw new ConflictError('Ja existe um usuario com este e-mail.');
+    throw new ConflictError('Já existe um usuário com este e-mail.');
   }
 }
 
@@ -169,7 +169,7 @@ export async function createUser(actor: CurrentUser, input: CreateUserInput) {
     .returning();
 
   if (!created) {
-    throw new Error('Nao foi possivel criar o usuario.');
+    throw new Error('Não foi possível criar o usuário.');
   }
 
   return created;
@@ -181,11 +181,11 @@ export async function updateUser(actor: CurrentUser, id: string, input: UpdateUs
   assertCanManageRole(actor, input.role);
 
   if (actor.id === id && input.active === false) {
-    throw new ValidationError('Voce nao pode desativar seu proprio usuario.');
+    throw new ValidationError('Você não pode desativar seu próprio usuário.');
   }
 
   if (actor.role === 'RH' && current.role !== input.role) {
-    throw new UnauthorizedError('RH nao pode alterar role de usuarios.');
+    throw new UnauthorizedError('RH não pode alterar role de usuários.');
   }
 
   await assertEmailUnique(input.email, id);
@@ -205,7 +205,7 @@ export async function updateUser(actor: CurrentUser, id: string, input: UpdateUs
     .returning();
 
   if (!updated) {
-    throw new Error('Nao foi possivel atualizar o usuario.');
+    throw new Error('Não foi possível atualizar o usuário.');
   }
 
   return updated;
@@ -230,7 +230,7 @@ export async function changeUserPassword(
 
 export async function deactivateUser(actor: CurrentUser, id: string) {
   if (actor.id === id) {
-    throw new ValidationError('Voce nao pode desativar seu proprio usuario.');
+    throw new ValidationError('Você não pode desativar seu próprio usuário.');
   }
 
   const current = await getUser(id);

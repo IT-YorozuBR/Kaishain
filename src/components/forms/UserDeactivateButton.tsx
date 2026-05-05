@@ -46,13 +46,13 @@ export function UserDeactivateButton({ id, userName }: UserDeactivateButtonProps
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button type="button" variant="destructive" />}>
-        Desativar usuario
+        Desativar usuário
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Desativar {userName}?</DialogTitle>
           <DialogDescription>
-            O usuario nao conseguira acessar o sistema enquanto estiver inativo.
+            O usuário não conseguirá acessar o sistema enquanto estiver inativo.
           </DialogDescription>
         </DialogHeader>
         {error ? <p className="text-destructive text-sm">{error}</p> : null}
@@ -61,7 +61,7 @@ export function UserDeactivateButton({ id, userName }: UserDeactivateButtonProps
             Cancelar
           </Button>
           <Button type="button" variant="destructive" onClick={handleConfirm} disabled={pending}>
-            {pending ? 'Desativando...' : 'Confirmar desativacao'}
+            {pending ? 'Desativando...' : 'Confirmar desativação'}
           </Button>
         </DialogFooter>
       </DialogContent>
