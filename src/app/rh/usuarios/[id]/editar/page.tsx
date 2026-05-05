@@ -11,6 +11,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { NotFoundError } from '@/lib/errors';
 import type { UserRoleValue } from '@/lib/validators/user';
 import { changeUserPasswordAction, updateUserAction } from '@/server/actions/users';
+import { listDepartments } from '@/server/services/departments';
 import { getUser } from '@/server/services/users';
 
 type EditarUsuarioPageProps = {
@@ -49,13 +50,16 @@ export default async function EditarUsuarioPage({ params }: EditarUsuarioPagePro
     redirect('/rh/usuarios');
   }
 
+  const departments = await listDepartments(true);
+
   return (
     <AppShell>
       <div className="grid gap-6">
-        <PageHeader title="Editar usuario" description={`Atualize os dados de ${user.name}.`} />
-        <FormCard title="Dados do usuario">
+        <PageHeader title="Editar usuário" description={`Atualize os dados de ${user.name}.`} />
+        <FormCard title="Dados do usuário">
           <UserForm
             allowedRoles={getAllowedRoles(currentUser.role)}
+            departments={departments}
             defaultValues={{
               name: user.name,
               email: user.email,
@@ -79,7 +83,7 @@ export default async function EditarUsuarioPage({ params }: EditarUsuarioPagePro
             </CardHeader>
             <CardContent className="flex flex-wrap items-center justify-between gap-4">
               <p className="text-sm text-red-700">
-                Desativar impede novo login, mas preserva o historico relacionado.
+                Desativar impede novo login, mas preserva o histórico relacionado.
               </p>
               <UserDeactivateButton id={user.id} userName={user.name} />
             </CardContent>

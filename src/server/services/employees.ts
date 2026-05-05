@@ -2,17 +2,18 @@ import { and, asc, count, eq, ilike, ne, or, type SQL } from 'drizzle-orm';
 
 import type { CurrentUser } from '@/lib/auth';
 import { getDb } from '@/lib/db';
-import { employees, users } from '@/lib/db/schema';
+import { departments, employees, users } from '@/lib/db/schema';
 import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from '@/lib/errors';
 import type { CreateEmployeeInput, UpdateEmployeeInput } from '@/lib/validators/employee';
 
 function requireRhOrAdmin(user: CurrentUser) {
   if (user.role !== 'RH' && user.role !== 'ADMIN') {
-    throw new UnauthorizedError('Apenas RH e administradores podem gerenciar funcionarios.');
+    throw new UnauthorizedError('Apenas RH e administradores podem gerenciar funcionários.');
   }
 }
 
 export type EmployeeWithManager = typeof employees.$inferSelect & {
+  department: string | null;
   manager: Pick<typeof users.$inferSelect, 'id' | 'name'> | null;
 };
 
@@ -21,7 +22,7 @@ export type Manager = Pick<typeof users.$inferSelect, 'id' | 'name' | 'email' | 
 export type ListEmployeesFilters = {
   search?: string;
   managerId?: string;
-  department?: string;
+  departmentId?: string;
   active?: boolean;
   limit?: number;
   offset?: number;
@@ -43,8 +44,8 @@ function buildEmployeeConditions(filters: ListEmployeesFilters): SQL[] {
     conditions.push(eq(employees.managerId, filters.managerId));
   }
 
-  if (filters.department) {
-    conditions.push(eq(employees.department, filters.department));
+  if (filters.departmentId) {
+    conditions.push(eq(employees.departmentId, filters.departmentId));
   }
 
   const search = filters.search?.trim();
@@ -80,9 +81,13 @@ export async function listEmployees(
         id: users.id,
         name: users.name,
       },
+      department: {
+        name: departments.name,
+      },
     })
     .from(employees)
     .leftJoin(users, eq(employees.managerId, users.id))
+    .leftJoin(departments, eq(employees.departmentId, departments.id))
     .where(whereClause)
     .orderBy(asc(employees.name));
 
@@ -90,8 +95,9 @@ export async function listEmployees(
     ? baseQuery.limit(filters.limit).offset(filters.offset ?? 0)
     : baseQuery);
 
-  const rows = rawRows.map(({ employee, manager }) => ({
+  const rows = rawRows.map(({ employee, manager, department }) => ({
     ...employee,
+    department: department?.name ?? null,
     manager: manager?.id ? { id: manager.id, name: manager.name } : null,
   }));
 
@@ -108,17 +114,22 @@ export async function getEmployee(id: string): Promise<EmployeeWithManager> {
         id: users.id,
         name: users.name,
       },
+      department: {
+        name: departments.name,
+      },
     })
     .from(employees)
     .leftJoin(users, eq(employees.managerId, users.id))
+    .leftJoin(departments, eq(employees.departmentId, departments.id))
     .where(eq(employees.id, id));
 
   if (!row) {
-    throw new NotFoundError('Funcionario nao encontrado.');
+    throw new NotFoundError('Funcionário não encontrado.');
   }
 
   return {
     ...row.employee,
+    department: row.department?.name ?? null,
     manager: row.manager?.id ? { id: row.manager.id, name: row.manager.name } : null,
   };
 }
@@ -157,24 +168,28 @@ export async function listEvaluationEmployeesForUser(user: CurrentUser) {
   throw new UnauthorizedError();
 }
 
-export async function listActiveDepartments(): Promise<string[]> {
-  const db = getDb();
-  const rows = await db
-    .selectDistinct({ department: employees.department })
-    .from(employees)
-    .where(eq(employees.active, true));
-  return rows
-    .map((r) => r.department)
-    .filter((d): d is string => d !== null)
-    .sort((a, b) => a.localeCompare(b));
-}
-
 export async function listEvaluationManagersForUser(user: CurrentUser) {
   if (user.role !== 'RH' && user.role !== 'ADMIN') {
     throw new UnauthorizedError();
   }
 
   return listManagers();
+}
+
+async function assertDepartmentExists(departmentId: string | null) {
+  if (!departmentId) {
+    return;
+  }
+
+  const db = getDb();
+  const [department] = await db
+    .select({ id: departments.id })
+    .from(departments)
+    .where(and(eq(departments.id, departmentId), eq(departments.active, true)));
+
+  if (!department) {
+    throw new ValidationError('Departamento inválido ou inativo.');
+  }
 }
 
 async function assertManagerCanBeAssigned(managerId: string | null) {
@@ -189,7 +204,7 @@ async function assertManagerCanBeAssigned(managerId: string | null) {
     .where(and(eq(users.id, managerId), eq(users.role, 'GESTOR'), eq(users.active, true)));
 
   if (!manager) {
-    throw new ValidationError('Gestor invalido ou inativo.');
+    throw new ValidationError('Gestor inválido ou inativo.');
   }
 }
 
@@ -207,7 +222,7 @@ async function assertEmailUnique(email: string, excludeId?: string) {
     .where(and(...conditions));
 
   if (existing) {
-    throw new ConflictError('Ja existe um funcionario com este e-mail.');
+    throw new ConflictError('Já existe um funcionário com este e-mail.');
   }
 }
 
@@ -225,12 +240,13 @@ async function assertRegistrationUnique(registration: string, excludeId?: string
     .where(and(...conditions));
 
   if (existing) {
-    throw new ConflictError('Ja existe um funcionario com esta matricula.');
+    throw new ConflictError('Já existe um funcionário com esta matrícula.');
   }
 }
 
 export async function createEmployee(user: CurrentUser, data: CreateEmployeeInput) {
   requireRhOrAdmin(user);
+  await assertDepartmentExists(data.departmentId);
   await assertManagerCanBeAssigned(data.managerId);
 
   if (data.email) {
@@ -245,7 +261,7 @@ export async function createEmployee(user: CurrentUser, data: CreateEmployeeInpu
   const [employee] = await db.insert(employees).values(data).returning();
 
   if (!employee) {
-    throw new Error('Nao foi possivel criar o funcionario.');
+    throw new Error('Não foi possível criar o funcionário.');
   }
 
   return employee;
@@ -254,6 +270,7 @@ export async function createEmployee(user: CurrentUser, data: CreateEmployeeInpu
 export async function updateEmployee(user: CurrentUser, id: string, data: UpdateEmployeeInput) {
   requireRhOrAdmin(user);
   await getEmployee(id);
+  await assertDepartmentExists(data.departmentId);
   await assertManagerCanBeAssigned(data.managerId);
 
   if (data.email) {
@@ -272,7 +289,7 @@ export async function updateEmployee(user: CurrentUser, id: string, data: Update
     .returning();
 
   if (!updated) {
-    throw new Error('Nao foi possivel atualizar o funcionario.');
+    throw new Error('Não foi possível atualizar o funcionário.');
   }
 
   return updated;

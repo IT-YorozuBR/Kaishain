@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   ListChecks,
   LogOut,
+  Network,
   UserCog,
   Users,
 } from 'lucide-react';
@@ -40,9 +41,10 @@ type SidebarItemConfig = {
 
 const items: SidebarItemConfig[] = [
   { href: '/avaliar', label: 'Avaliar', icon: CalendarCheck, roles: ['GESTOR', 'ADMIN'] },
-  { href: '/historico', label: 'Historico', icon: History, roles: ['GESTOR'] },
-  { href: '/funcionarios', label: 'Funcionarios', icon: Users, roles: ['RH', 'ADMIN'] },
-  { href: '/rh/usuarios', label: 'Usuarios', icon: UserCog, roles: ['RH', 'ADMIN'] },
+  { href: '/historico', label: 'Histórico', icon: History, roles: ['GESTOR'] },
+  { href: '/funcionarios', label: 'Funcionários', icon: Users, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/departamentos', label: 'Departamentos', icon: Network, roles: ['RH', 'ADMIN'] },
+  { href: '/rh/usuarios', label: 'Usuários', icon: UserCog, roles: ['RH', 'ADMIN'] },
   { href: '/rh/checklist', label: 'Checklist', icon: ListChecks, roles: ['RH', 'ADMIN'] },
   { href: '/rh/historico', label: 'Avaliações', icon: ClipboardList, roles: ['RH', 'ADMIN'] },
   {
@@ -90,7 +92,7 @@ export function AppSidebar({ user, signOutAction }: AppSidebarProps) {
         {!collapsed ? (
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">Kaishain</div>
-            <div className="text-sidebar-foreground/65 truncate text-xs">Gestao interna</div>
+            <div className="text-sidebar-foreground/65 truncate text-xs">Gestão interna</div>
           </div>
         ) : null}
       </div>

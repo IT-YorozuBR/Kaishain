@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/select';
 import {
   createEmployeeSchema,
-  DEPARTMENTS,
   EQUIPAMENTOS,
   type EquipamentoValue,
   TURNO_LABELS,
@@ -29,9 +28,11 @@ import type { EmployeeActionState } from '@/server/actions/employees';
 type EmployeeFormValues = z.input<typeof createEmployeeSchema>;
 type EmployeeFormOutput = z.output<typeof createEmployeeSchema>;
 type Manager = { id: string; name: string; email: string; department: string | null };
+type Department = { id: string; name: string };
 
 type EmployeeFormProps = {
   managers: Manager[];
+  departments: Department[];
   defaultValues?: Partial<Record<Exclude<keyof EmployeeFormValues, 'equipamentos'>, string | null>> & {
     equipamentos?: EquipamentoValue[];
   };
@@ -42,7 +43,7 @@ function valueOrEmpty(value: string | null | undefined) {
   return value ?? '';
 }
 
-export function EmployeeForm({ managers, defaultValues, action }: EmployeeFormProps) {
+export function EmployeeForm({ managers, departments, defaultValues, action }: EmployeeFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const mounted = useRef(false);
@@ -61,7 +62,7 @@ export function EmployeeForm({ managers, defaultValues, action }: EmployeeFormPr
       email: valueOrEmpty(defaultValues?.email),
       registration: valueOrEmpty(defaultValues?.registration),
       position: valueOrEmpty(defaultValues?.position),
-      department: valueOrEmpty(defaultValues?.department),
+      departmentId: valueOrEmpty(defaultValues?.departmentId),
       turno: valueOrEmpty(defaultValues?.turno),
       managerId: valueOrEmpty(defaultValues?.managerId),
       equipamentos: defaultValues?.equipamentos ?? [],
@@ -70,30 +71,30 @@ export function EmployeeForm({ managers, defaultValues, action }: EmployeeFormPr
 
   const managerId = useWatch({ control, name: 'managerId' });
   const turno = useWatch({ control, name: 'turno' });
-  const department = useWatch({ control, name: 'department' });
+  const departmentId = useWatch({ control, name: 'departmentId' });
   const equipamentos = useWatch({ control, name: 'equipamentos' }) ?? [];
 
-  const filteredManagers = department
-    ? managers.filter((m) => m.department === department)
+  const selectedDepartment = departments.find((department) => department.id === departmentId);
+  const filteredManagers = selectedDepartment
+    ? managers.filter((manager) => manager.department === selectedDepartment.name)
     : [];
 
-  // On mount (edit mode): if the current manager is not in the filtered list, clear it
   useEffect(() => {
     if (mounted.current) return;
     mounted.current = true;
-    if (!department || !managerId) return;
+    if (!departmentId || !managerId || !selectedDepartment) return;
     const inList = managers
-      .filter((m) => m.department === department)
-      .some((m) => m.id === managerId);
+      .filter((manager) => manager.department === selectedDepartment.name)
+      .some((manager) => manager.id === managerId);
     if (!inList) {
       setValue('managerId', '', { shouldDirty: false, shouldValidate: false });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function toggleEquipamento(item: EquipamentoValue) {
     const next = equipamentos.includes(item)
-      ? equipamentos.filter((e) => e !== item)
+      ? equipamentos.filter((equipamento) => equipamento !== item)
       : [...equipamentos, item];
     setValue('equipamentos', next, { shouldDirty: true, shouldValidate: true });
   }
@@ -122,8 +123,8 @@ export function EmployeeForm({ managers, defaultValues, action }: EmployeeFormPr
     });
   }
 
-  const managerDisabled = !department || filteredManagers.length === 0;
-  const managerPlaceholder = !department
+  const managerDisabled = !departmentId || filteredManagers.length === 0;
+  const managerPlaceholder = !departmentId
     ? 'Selecione um departamento primeiro'
     : filteredManagers.length === 0
       ? 'Nenhum gestor para este departamento'
@@ -162,7 +163,7 @@ export function EmployeeForm({ managers, defaultValues, action }: EmployeeFormPr
 
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="registration">Matricula</Label>
+          <Label htmlFor="registration">Matrícula</Label>
           <Input
             id="registration"
             {...register('registration')}
@@ -190,29 +191,33 @@ export function EmployeeForm({ managers, defaultValues, action }: EmployeeFormPr
 
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="department">Departamento</Label>
+          <Label htmlFor="departmentId">Departamento</Label>
           <Select
-            value={department || 'none'}
+            value={departmentId || 'none'}
             onValueChange={(value) => {
               const next = value && value !== 'none' ? value : '';
-              setValue('department', next, { shouldDirty: true, shouldValidate: true });
+              setValue('departmentId', next, { shouldDirty: true, shouldValidate: true });
               setValue('managerId', '', { shouldDirty: true, shouldValidate: false });
             }}
           >
-            <SelectTrigger id="department" className="w-full" aria-invalid={Boolean(errors.department)}>
+            <SelectTrigger
+              id="departmentId"
+              className="w-full"
+              aria-invalid={Boolean(errors.departmentId)}
+            >
               <SelectValue placeholder="Selecione um departamento" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Sem departamento</SelectItem>
-              {DEPARTMENTS.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {dept}
+              {departments.map((department) => (
+                <SelectItem key={department.id} value={department.id}>
+                  {department.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.department ? (
-            <p className="text-sm text-destructive">{errors.department.message}</p>
+          {errors.departmentId ? (
+            <p className="text-sm text-destructive">{errors.departmentId.message}</p>
           ) : null}
         </div>
 
@@ -233,9 +238,9 @@ export function EmployeeForm({ managers, defaultValues, action }: EmployeeFormPr
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Sem turno</SelectItem>
-              {TURNOS.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {TURNO_LABELS[t]}
+              {TURNOS.map((turnoOption) => (
+                <SelectItem key={turnoOption} value={turnoOption}>
+                  {TURNO_LABELS[turnoOption]}
                 </SelectItem>
               ))}
             </SelectContent>

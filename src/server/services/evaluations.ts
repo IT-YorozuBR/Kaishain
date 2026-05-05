@@ -1,10 +1,24 @@
-import { and, asc, count, desc, eq, gte, inArray, lte, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 
 import type { CurrentUser } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { listChecklistItems } from '@/server/services/checklist';
 import {
   checklistItems,
+  departments,
   employees,
   evaluationChecklistResults,
   evaluations,
@@ -16,24 +30,48 @@ import type { CreateEvaluationInput } from '@/lib/validators/evaluation';
 import type { EmployeeEvaluationDashboardFilters } from '@/lib/validators/employee-evaluation-dashboard';
 import type { EvaluationHistoryFilters } from '@/lib/validators/evaluation-history';
 
-export type TeamEmployee = typeof employees.$inferSelect;
+export type TeamEmployee = typeof employees.$inferSelect & { department: string | null };
 
 export async function getMyTeam(userId: string) {
   const db = getDb();
 
-  return db.query.employees.findMany({
-    where: and(eq(employees.managerId, userId), eq(employees.active, true)),
-    orderBy: [asc(employees.name)],
-  });
+  const rows = await db
+    .select({
+      employee: employees,
+      department: {
+        name: departments.name,
+      },
+    })
+    .from(employees)
+    .leftJoin(departments, eq(employees.departmentId, departments.id))
+    .where(and(eq(employees.managerId, userId), eq(employees.active, true)))
+    .orderBy(asc(employees.name));
+
+  return rows.map(({ employee, department }) => ({
+    ...employee,
+    department: department?.name ?? null,
+  }));
 }
 
 export async function getEmployeesForEvaluation(user: CurrentUser) {
   if (user.role === 'ADMIN') {
     const db = getDb();
-    return db.query.employees.findMany({
-      where: eq(employees.active, true),
-      orderBy: [asc(employees.name)],
-    });
+    const rows = await db
+      .select({
+        employee: employees,
+        department: {
+          name: departments.name,
+        },
+      })
+      .from(employees)
+      .leftJoin(departments, eq(employees.departmentId, departments.id))
+      .where(eq(employees.active, true))
+      .orderBy(asc(employees.name));
+
+    return rows.map(({ employee, department }) => ({
+      ...employee,
+      department: department?.name ?? null,
+    }));
   }
 
   // GESTOR vê apenas seus liderados diretos; RH não avalia
@@ -82,7 +120,7 @@ export async function getEvaluationFormData(user: CurrentUser, employeeId: strin
   });
 
   if (!employee) {
-    throw new NotFoundError('Funcionario nao encontrado.');
+    throw new NotFoundError('Funcionário não encontrado.');
   }
 
   if (!canEvaluate(user, employee)) {
@@ -108,15 +146,22 @@ export async function upsertEvaluation(
 ) {
   const db = getDb();
 
-  const employee = await db.query.employees.findFirst({
-    where: and(eq(employees.id, input.employeeId), eq(employees.active, true)),
-  });
+  const [employeeRow] = await db
+    .select({
+      employee: employees,
+      department: {
+        name: departments.name,
+      },
+    })
+    .from(employees)
+    .leftJoin(departments, eq(employees.departmentId, departments.id))
+    .where(and(eq(employees.id, input.employeeId), eq(employees.active, true)));
 
-  if (!employee) {
-    throw new NotFoundError('Funcionario nao encontrado.');
+  if (!employeeRow) {
+    throw new NotFoundError('Funcionário não encontrado.');
   }
 
-  if (!canEvaluate(user, employee)) {
+  if (!canEvaluate(user, employeeRow.employee)) {
     throw new UnauthorizedError();
   }
 
@@ -131,7 +176,7 @@ export async function upsertEvaluation(
   );
 
   if (hasInactiveItem || submittedChecklistItemIds.size !== activeChecklistItems.length) {
-    throw new ValidationError('Checklist incompleto ou com item invalido.');
+    throw new ValidationError('Checklist incompleto ou com item inválido.');
   }
 
   return db.transaction(async (tx) => {
@@ -143,6 +188,7 @@ export async function upsertEvaluation(
         evaluationDate,
         score: input.score,
         note: input.note,
+        employeeDepartment: employeeRow.department?.name ?? null,
       })
       .onConflictDoUpdate({
         target: [evaluations.employeeId, evaluations.evaluationDate],
@@ -156,7 +202,7 @@ export async function upsertEvaluation(
       .returning();
 
     if (!evaluation) {
-      throw new Error('Nao foi possivel salvar a avaliacao.');
+      throw new Error('Não foi possível salvar a avaliação.');
     }
 
     await tx
@@ -228,6 +274,19 @@ export async function listEvaluations(filters: EvaluationHistoryFilters) {
     conditions.push(eq(evaluations.employeeId, filters.employeeId));
   }
 
+  const employeeSearch = filters.employeeSearch?.trim();
+  if (employeeSearch) {
+    const term = `%${employeeSearch}%`;
+    const searchCondition = or(
+      ilike(employees.name, term),
+      ilike(employees.email, term),
+      ilike(employees.registration, term),
+    );
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
+  }
+
   if (filters.evaluatorId) {
     conditions.push(eq(evaluations.evaluatorId, filters.evaluatorId));
   }
@@ -240,13 +299,19 @@ export async function listEvaluations(filters: EvaluationHistoryFilters) {
     conditions.push(lte(evaluations.evaluationDate, filters.dateTo));
   }
 
-  if (filters.department) {
-    conditions.push(eq(employees.department, filters.department));
+  if (filters.departmentId) {
+    conditions.push(
+      sql`${evaluations.employeeDepartment} = (select "name" from "departments" where "id" = ${filters.departmentId})`,
+    );
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-  const [totalRow] = await db.select({ value: count() }).from(evaluations).where(where);
+  const [totalRow] = await db
+    .select({ value: count() })
+    .from(evaluations)
+    .innerJoin(employees, eq(evaluations.employeeId, employees.id))
+    .where(where);
 
   const rows = await db
     .select({
@@ -258,7 +323,7 @@ export async function listEvaluations(filters: EvaluationHistoryFilters) {
         id: employees.id,
         name: employees.name,
         position: employees.position,
-        department: employees.department,
+        department: evaluations.employeeDepartment,
       },
       evaluator: {
         id: users.id,
@@ -420,7 +485,7 @@ export async function getManagerDailyEvaluationDetails(
   });
 
   if (!manager) {
-    throw new NotFoundError('Gestor nao encontrado.');
+    throw new NotFoundError('Gestor não encontrado.');
   }
 
   const team = await db
@@ -428,9 +493,10 @@ export async function getManagerDailyEvaluationDetails(
       id: employees.id,
       name: employees.name,
       position: employees.position,
-      department: employees.department,
+      department: departments.name,
     })
     .from(employees)
+    .leftJoin(departments, eq(employees.departmentId, departments.id))
     .where(and(eq(employees.managerId, managerId), eq(employees.active, true)))
     .orderBy(asc(employees.name));
 
@@ -576,6 +642,9 @@ export async function getEmployeeEvaluationDashboard(
   const [employeeRow] = await db
     .select({
       employee: employees,
+      department: {
+        name: departments.name,
+      },
       manager: {
         id: users.id,
         name: users.name,
@@ -584,10 +653,11 @@ export async function getEmployeeEvaluationDashboard(
     })
     .from(employees)
     .leftJoin(users, eq(employees.managerId, users.id))
+    .leftJoin(departments, eq(employees.departmentId, departments.id))
     .where(eq(employees.id, employeeId));
 
   if (!employeeRow) {
-    throw new NotFoundError('Funcionario nao encontrado.');
+    throw new NotFoundError('Funcionário não encontrado.');
   }
 
   const conditions: SQL[] = [eq(evaluations.employeeId, employeeId)];
@@ -730,6 +800,7 @@ export async function getEmployeeEvaluationDashboard(
   return {
     employee: {
       ...employeeRow.employee,
+      department: employeeRow.department?.name ?? null,
       manager: employeeRow.manager?.id
         ? {
             id: employeeRow.manager.id,
@@ -759,9 +830,10 @@ export async function getEmployeeEvaluationDashboard(
 
 export type ExportFilters = {
   evaluatorId?: string;
+  employeeSearch?: string;
   dateFrom?: string;
   dateTo?: string;
-  department?: string;
+  departmentId?: string;
 };
 
 export async function listEvaluationsForExport(filters: ExportFilters) {
@@ -769,9 +841,23 @@ export async function listEvaluationsForExport(filters: ExportFilters) {
   const conditions: SQL[] = [];
 
   if (filters.evaluatorId) conditions.push(eq(evaluations.evaluatorId, filters.evaluatorId));
+  const employeeSearch = filters.employeeSearch?.trim();
+  if (employeeSearch) {
+    const term = `%${employeeSearch}%`;
+    const searchCondition = or(
+      ilike(employees.name, term),
+      ilike(employees.email, term),
+      ilike(employees.registration, term),
+    );
+    if (searchCondition) conditions.push(searchCondition);
+  }
   if (filters.dateFrom) conditions.push(gte(evaluations.evaluationDate, filters.dateFrom));
   if (filters.dateTo) conditions.push(lte(evaluations.evaluationDate, filters.dateTo));
-  if (filters.department) conditions.push(eq(employees.department, filters.department));
+  if (filters.departmentId) {
+    conditions.push(
+      sql`${evaluations.employeeDepartment} = (select "name" from "departments" where "id" = ${filters.departmentId})`,
+    );
+  }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -783,7 +869,7 @@ export async function listEvaluationsForExport(filters: ExportFilters) {
       employee: {
         name: employees.name,
         position: employees.position,
-        department: employees.department,
+        department: evaluations.employeeDepartment,
       },
       evaluator: { name: users.name },
     })
@@ -808,7 +894,7 @@ export async function getEvaluationDetail(user: CurrentUser, evaluationId: strin
         id: employees.id,
         name: employees.name,
         position: employees.position,
-        department: employees.department,
+        department: evaluations.employeeDepartment,
       },
       evaluator: {
         id: users.id,
@@ -822,11 +908,11 @@ export async function getEvaluationDetail(user: CurrentUser, evaluationId: strin
     .where(eq(evaluations.id, evaluationId));
 
   if (!row) {
-    throw new NotFoundError('Avaliacao nao encontrada.');
+    throw new NotFoundError('Avaliação não encontrada.');
   }
 
   if (user.role === 'GESTOR' && row.evaluatorId !== user.id) {
-    throw new UnauthorizedError('Voce nao pode acessar avaliacoes de outro gestor.');
+    throw new UnauthorizedError('Você não pode acessar avaliações de outro gestor.');
   }
 
   if (user.role !== 'GESTOR' && user.role !== 'RH' && user.role !== 'ADMIN') {

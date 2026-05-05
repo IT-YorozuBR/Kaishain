@@ -11,6 +11,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { NotFoundError } from '@/lib/errors';
 import type { EquipamentoValue } from '@/lib/validators/employee';
 import { updateEmployeeAction } from '@/server/actions/employees';
+import { listDepartments } from '@/server/services/departments';
 import { getEmployee, listManagers } from '@/server/services/employees';
 
 type EditarFuncionarioPageProps = {
@@ -41,26 +42,27 @@ export default async function EditarFuncionarioPage({ params }: EditarFuncionari
     throw error;
   }
 
-  const managers = await listManagers();
+  const [managers, departments] = await Promise.all([listManagers(), listDepartments(true)]);
   const updateAction = updateEmployeeAction.bind(null, id);
 
   return (
     <AppShell>
       <div className="grid max-w-3xl gap-6">
         <PageHeader
-          title="Editar funcionario"
-          description="Atualize os dados cadastrais e a relacao com o gestor."
+          title="Editar funcionário"
+          description="Atualize os dados cadastrais e a relação com o gestor."
           meta={!employee.active ? <StatusBadge status="inactive">Inativo</StatusBadge> : null}
         />
-        <FormCard title="Dados do funcionario">
+        <FormCard title="Dados do funcionário">
           <EmployeeForm
             managers={managers}
+            departments={departments}
             defaultValues={{
               name: employee.name,
               email: employee.email,
               registration: employee.registration,
               position: employee.position,
-              department: employee.department,
+              departmentId: employee.departmentId,
               turno: employee.turno,
               managerId: employee.managerId,
               equipamentos: employee.equipamentos as EquipamentoValue[],
@@ -76,7 +78,7 @@ export default async function EditarFuncionarioPage({ params }: EditarFuncionari
             </CardHeader>
             <CardContent className="flex flex-wrap items-center justify-between gap-4">
               <p className="max-w-md text-sm text-muted-foreground">
-                Funcionarios desativados saem da tela de avaliacao. O historico e preservado.
+                Funcionários desativados saem da tela de avaliação. O histórico é preservado.
               </p>
               <DeactivateButton id={employee.id} employeeName={employee.name} />
             </CardContent>

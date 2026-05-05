@@ -6,6 +6,7 @@ import { FormCard } from '@/components/layout/FormCard';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { getCurrentUser } from '@/lib/auth';
 import { createEmployeeAction } from '@/server/actions/employees';
+import { listDepartments } from '@/server/services/departments';
 import { listManagers } from '@/server/services/employees';
 
 export default async function NovoFuncionarioPage() {
@@ -19,17 +20,21 @@ export default async function NovoFuncionarioPage() {
     redirect('/avaliar');
   }
 
-  const managers = await listManagers();
+  const [managers, departments] = await Promise.all([listManagers(), listDepartments(true)]);
 
   return (
     <AppShell>
       <div className="grid max-w-3xl gap-6 mx-auto mt-10">
         <PageHeader
-          title="Novo funcionario"
-          description="Cadastre um funcionario e associe um gestor responsavel."
+          title="Novo funcionário"
+          description="Cadastre um funcionário e associe um gestor responsável."
         />
-        <FormCard title="Dados do funcionario">
-          <EmployeeForm managers={managers} action={createEmployeeAction} />
+        <FormCard title="Dados do funcionário">
+          <EmployeeForm
+            managers={managers}
+            departments={departments}
+            action={createEmployeeAction}
+          />
         </FormCard>
       </div>
     </AppShell>

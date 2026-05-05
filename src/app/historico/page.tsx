@@ -8,7 +8,7 @@ import { EvaluationsHistoryTable } from '@/components/tables/EvaluationsHistoryT
 import { buttonVariants } from '@/components/ui/button';
 import { getCurrentUser } from '@/lib/auth';
 import { listEvaluationHistoryAction } from '@/server/actions/evaluation-history';
-import { listEvaluationEmployeesForUser } from '@/server/services/employees';
+import { listDepartments } from '@/server/services/departments';
 
 type HistoricoPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -48,27 +48,31 @@ export default async function HistoricoPage({ searchParams }: HistoricoPageProps
   }
 
   const params = await searchParams;
-  const [history, employees] = await Promise.all([
+  const [history, departments] = await Promise.all([
     listEvaluationHistoryAction({
       employeeId: getParam(params, 'employeeId'),
+      employeeSearch: getParam(params, 'employeeSearch'),
       dateFrom: getParam(params, 'dateFrom'),
       dateTo: getParam(params, 'dateTo'),
+      departmentId: getParam(params, 'departmentId'),
       page: getParam(params, 'page'),
     }),
-    listEvaluationEmployeesForUser(user),
+    listDepartments(true),
   ]);
 
   return (
     <AppShell>
       <div className="grid gap-6">
-        <PageHeader title="Historico" description="Consulte avaliacoes realizadas por voce." />
+        <PageHeader title="Histórico" description="Consulte avaliações realizadas por você." />
 
         <EvaluationHistoryFilters
-          employees={employees}
+          departments={departments}
           defaultValues={{
             employeeId: getParam(params, 'employeeId'),
+            employeeSearch: getParam(params, 'employeeSearch'),
             dateFrom: getParam(params, 'dateFrom'),
             dateTo: getParam(params, 'dateTo'),
+            departmentId: getParam(params, 'departmentId'),
           }}
         />
 
@@ -76,7 +80,7 @@ export default async function HistoricoPage({ searchParams }: HistoricoPageProps
 
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <span className="text-muted-foreground">
-            Pagina {history.page} de {history.totalPages} - {history.total} avaliacao(oes)
+            Página {history.page} de {history.totalPages} - {history.total} avaliação(ões)
           </span>
           <div className="flex gap-2">
             <Link
@@ -91,7 +95,7 @@ export default async function HistoricoPage({ searchParams }: HistoricoPageProps
               className={buttonVariants({ variant: 'outline', size: 'sm' })}
               aria-disabled={history.page >= history.totalPages}
             >
-              Proxima
+              Próxima
             </Link>
           </div>
         </div>

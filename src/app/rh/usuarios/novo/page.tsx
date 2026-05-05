@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { getCurrentUser } from '@/lib/auth';
 import type { UserRoleValue } from '@/lib/validators/user';
 import { createUserAction } from '@/server/actions/users';
+import { listDepartments } from '@/server/services/departments';
 
 function getAllowedRoles(role: string): UserRoleValue[] {
   return role === 'ADMIN' ? ['RH', 'GESTOR', 'ADMIN'] : ['GESTOR'];
@@ -23,15 +24,21 @@ export default async function NovoUsuarioPage() {
     redirect('/avaliar');
   }
 
+  const departments = await listDepartments(true);
+
   return (
     <AppShell>
       <div className="grid gap-6">
-        <PageHeader title="Novo usuario" description="Crie um usuario de acesso ao sistema." />
+        <PageHeader title="Novo usuário" description="Crie um usuário de acesso ao sistema." />
         <FormCard
-          title="Dados do usuario"
-          description="A senha temporaria padrao sera Kaishain@2025."
+          title="Dados do usuário"
+          description="A senha temporária padrão será Kaishain@2025."
         >
-          <UserForm allowedRoles={getAllowedRoles(user.role)} action={createUserAction} />
+          <UserForm
+            allowedRoles={getAllowedRoles(user.role)}
+            departments={departments}
+            action={createUserAction}
+          />
         </FormCard>
       </div>
     </AppShell>

@@ -8,6 +8,7 @@ import { EmployeesTable } from '@/components/tables/EmployeesTable';
 import { buttonVariants } from '@/components/ui/button';
 import { getCurrentUser } from '@/lib/auth';
 import { cn } from '@/lib/utils';
+import { listDepartments } from '@/server/services/departments';
 import { listEmployees, listManagers } from '@/server/services/employees';
 
 const PAGE_SIZE = 20;
@@ -52,22 +53,23 @@ export default async function FuncionariosPage({ searchParams }: FuncionariosPag
   const search = getParam(params, 'search');
   const statusParam = getParam(params, 'status') ?? 'active';
   const managerId = getParam(params, 'managerId');
-  const department = getParam(params, 'department');
+  const departmentId = getParam(params, 'departmentId');
   const page = Math.max(1, parseInt(getParam(params, 'page') ?? '1', 10));
 
   const active =
     statusParam === 'inactive' ? false : statusParam === 'all' ? undefined : true;
 
-  const [{ rows: employees, total }, managers] = await Promise.all([
+  const [{ rows: employees, total }, managers, departments] = await Promise.all([
     listEmployees({
       search,
       active,
       managerId,
-      department,
+      departmentId,
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
     }),
     listManagers(),
+    listDepartments(true),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -76,22 +78,23 @@ export default async function FuncionariosPage({ searchParams }: FuncionariosPag
     <AppShell>
       <div className="grid gap-6">
         <PageHeader
-          title="Funcionarios"
-          description="Gerencie o cadastro de funcionarios da empresa."
+          title="Funcionários"
+          description="Gerencie o cadastro de funcionários da empresa."
           actions={
             <Link href="/funcionarios/novo" className={cn(buttonVariants(), 'shrink-0')}>
-              Novo funcionario
+              Novo funcionário
             </Link>
           }
         />
 
         <EmployeeFilters
           managers={managers}
+          departments={departments}
           defaultValues={{
             search,
             status: statusParam,
             managerId,
-            department,
+            departmentId,
           }}
         />
 
@@ -99,7 +102,7 @@ export default async function FuncionariosPage({ searchParams }: FuncionariosPag
 
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <span className="text-muted-foreground">
-            Pagina {page} de {totalPages} — {total} funcionario(s)
+            Página {page} de {totalPages} — {total} funcionário(s)
           </span>
           <div className="flex gap-2">
             <Link
@@ -120,7 +123,7 @@ export default async function FuncionariosPage({ searchParams }: FuncionariosPag
               )}
               aria-disabled={page >= totalPages}
             >
-              Proxima
+              Próxima
             </Link>
           </div>
         </div>

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
 
   if (!user) {
-    return new NextResponse('Nao autorizado.', { status: 401 });
+    return new NextResponse('Não autorizado.', { status: 401 });
   }
 
   if (user.role !== 'RH' && user.role !== 'ADMIN') {
@@ -22,13 +22,20 @@ export async function GET(request: NextRequest) {
 
   const sp = request.nextUrl.searchParams;
   const evaluatorId = sp.get('evaluatorId') || undefined;
+  const employeeSearch = sp.get('employeeSearch') || undefined;
   const dateFrom = sp.get('dateFrom') || undefined;
   const dateTo = sp.get('dateTo') || undefined;
-  const department = sp.get('department') || undefined;
+  const departmentId = sp.get('departmentId') || undefined;
 
-  const items = await listEvaluationsForExport({ evaluatorId, dateFrom, dateTo, department });
+  const items = await listEvaluationsForExport({
+    evaluatorId,
+    employeeSearch,
+    dateFrom,
+    dateTo,
+    departmentId,
+  });
 
-  const header = ['Data', 'Funcionario', 'Departamento', 'Cargo', 'Avaliador', 'Nota', 'Observacao'];
+  const header = ['Data', 'Funcionário', 'Departamento', 'Cargo', 'Avaliador', 'Nota', 'Observação'];
   const dataRows = items.map((item) => [
     formatDate(item.evaluationDate),
     item.employee.name,
@@ -51,7 +58,7 @@ export async function GET(request: NextRequest) {
   ];
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Avaliacoes');
+  XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
 
   const today = new Date().toISOString().split('T')[0];
   const buffer = new Uint8Array(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as ArrayBuffer);

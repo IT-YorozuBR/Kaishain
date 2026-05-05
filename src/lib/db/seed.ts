@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import {
   checklistItems,
+  departments,
   employees,
   evaluationChecklistResults,
   evaluations,
@@ -16,7 +17,7 @@ import {
 import * as schema from './schema';
 
 const seedEnvSchema = z.object({
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL e obrigatoria'),
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL é obrigatória'),
   SEED_ADMIN_NAME: z.string().min(1).optional(),
   SEED_ADMIN_EMAIL: z.email().trim().toLowerCase().optional(),
   SEED_ADMIN_PASSWORD: z.string().min(8).optional(),
@@ -52,12 +53,12 @@ const departmentSeeds = [
     registrationPrefix: 'TI',
     position: 'Analista de TI',
   },
-  { name: 'SST/MA', count: 5, registrationPrefix: 'SSTMA', position: 'Tecnico de SST/MA' },
+  { name: 'SST/MA', count: 5, registrationPrefix: 'SSTMA', position: 'Técnico de SST/MA' },
   {
     name: 'Logística',
     count: 14,
     registrationPrefix: 'LOG',
-    position: 'Operador de Logistica',
+    position: 'Operador de Logística',
   },
   { name: 'Compras', count: 3, registrationPrefix: 'COMP', position: 'Assistente de Compras' },
   { name: 'Comercial', count: 2, registrationPrefix: 'COM', position: 'Assistente Comercial' },
@@ -77,7 +78,7 @@ const departmentSeeds = [
     name: 'Manutenção',
     count: 14,
     registrationPrefix: 'MAN',
-    position: 'Tecnico de Manutencao',
+    position: 'Técnico de Manutenção',
   },
   {
     name: 'Qualidade',
@@ -118,20 +119,20 @@ const firstNames = [
   'Gabriela',
   'Henrique',
   'Isabela',
-  'Joao',
+  'João',
   'Karen',
   'Leonardo',
   'Mariana',
   'Nicolas',
-  'Olivia',
+  'Olívia',
   'Paulo',
   'Renata',
-  'Sergio',
+  'Sérgio',
   'Tatiane',
   'Victor',
   'Amanda',
   'Caio',
-  'Debora',
+  'Débora',
   'Everton',
   'Fernanda',
   'Gustavo',
@@ -214,7 +215,7 @@ const departmentEmployeesTotal = departmentSeeds.reduce((total, department) => {
 
 if (departmentEmployeesTotal !== EXPECTED_EMPLOYEES_TOTAL) {
   throw new Error(
-    `Total de funcionarios invalido no seed: esperado ${EXPECTED_EMPLOYEES_TOTAL}, recebido ${departmentEmployeesTotal}.`,
+    `Total de funcionários inválido no seed: esperado ${EXPECTED_EMPLOYEES_TOTAL}, recebido ${departmentEmployeesTotal}.`,
   );
 }
 
@@ -252,20 +253,20 @@ const testEmployees: EmployeeSeed[] = departmentSeeds.flatMap((department, depar
 });
 
 const initialChecklistItems = [
-  { label: 'Pontualidade', description: 'Chegou e cumpriu horarios combinados.', order: 1 },
+  { label: 'Pontualidade', description: 'Chegou e cumpriu horários combinados.', order: 1 },
   {
     label: 'Cumpriu metas do dia',
     description: 'Entregou as atividades previstas para o turno.',
     order: 2,
   },
   {
-    label: 'Colaboracao com a equipe',
-    description: 'Apoiou colegas e manteve boa comunicacao.',
+    label: 'Colaboração com a equipe',
+    description: 'Apoiou colegas e manteve boa comunicação.',
     order: 3,
   },
   {
     label: 'Qualidade da entrega',
-    description: 'Executou as atividades com qualidade e atencao.',
+    description: 'Executou as atividades com qualidade e atenção.',
     order: 4,
   },
   { label: 'Iniciativa', description: 'Antecipou necessidades e sugeriu melhorias.', order: 5 },
@@ -283,11 +284,11 @@ const evaluationDates = [
 ] as const;
 
 const evaluationNotes = [
-  'Manteve boa consistencia na rotina e colaborou com a equipe.',
-  'Cumpriu as prioridades do dia com atencao aos detalhes.',
-  'Teve boa produtividade e comunicou impedimentos com antecedencia.',
-  'Executou as atividades previstas e manteve organizacao no posto.',
-  'Apresentou evolucao nas entregas e boa postura durante o turno.',
+  'Manteve boa consistência na rotina e colaborou com a equipe.',
+  'Cumpriu as prioridades do dia com atenção aos detalhes.',
+  'Teve boa produtividade e comunicou impedimentos com antecedência.',
+  'Executou as atividades previstas e manteve organização no posto.',
+  'Apresentou evolução nas entregas e boa postura durante o turno.',
 ] as const;
 
 function getSeedScore(employeeIndex: number, dateIndex: number) {
@@ -308,7 +309,7 @@ async function main() {
 
   if (!parsedEnv.success) {
     const errors = parsedEnv.error.flatten().fieldErrors;
-    throw new Error(`Variaveis de seed invalidas: ${JSON.stringify(errors)}`);
+    throw new Error(`Variáveis de seed inválidas: ${JSON.stringify(errors)}`);
   }
 
   const pool = new Pool({ connectionString: parsedEnv.data.DATABASE_URL });
@@ -336,7 +337,21 @@ async function main() {
       ...testUsers.map((user) => ({ ...user, passwordHash: testPasswordHash })),
     ];
 
-    console.log('\nUsuarios');
+    console.log('\nDepartamentos');
+    const insertedDepartments = await db
+      .insert(departments)
+      .values(departmentSeeds.map((department) => ({ name: department.name })))
+      .onConflictDoNothing()
+      .returning();
+    const allDepartments = await db
+      .select({ id: departments.id, name: departments.name })
+      .from(departments);
+    const departmentIdsByName = new Map(
+      allDepartments.map((department) => [department.name, department.id]),
+    );
+    console.log(`  ${insertedDepartments.length} departamentos inseridos.`);
+
+    console.log('\nUsuários');
     for (const user of usersToSeed) {
       await db
         .insert(users)
@@ -382,19 +397,25 @@ async function main() {
     const seededUsers = await db.query.users.findMany({ columns: { id: true, email: true } });
     const userIdsByEmail = new Map(seededUsers.map((user) => [user.email, user.id]));
 
-    console.log('\nFuncionarios');
+    console.log('\nFuncionários');
     for (const department of departmentSeeds) {
       const departmentEmployees = testEmployees.filter(
         (employee) => employee.department === department.name,
       );
 
-      console.log(`\n  ${department.name} (${departmentEmployees.length} funcionarios)`);
+      console.log(`\n  ${department.name} (${departmentEmployees.length} funcionários)`);
 
       for (const employee of departmentEmployees) {
         const managerId = userIdsByEmail.get(employee.managerEmail);
 
         if (!managerId) {
-          throw new Error(`Gestor nao encontrado: ${employee.managerEmail}`);
+          throw new Error(`Gestor não encontrado: ${employee.managerEmail}`);
+        }
+
+        const departmentId = departmentIdsByName.get(employee.department);
+
+        if (!departmentId) {
+          throw new Error(`Departamento não encontrado: ${employee.department}`);
         }
 
         await db
@@ -404,7 +425,7 @@ async function main() {
             email: employee.email,
             registration: employee.registration,
             position: employee.position,
-            department: employee.department,
+            departmentId,
             turno: employee.turno,
             managerId,
             active: true,
@@ -415,7 +436,7 @@ async function main() {
               name: employee.name,
               email: employee.email,
               position: employee.position,
-              department: employee.department,
+              departmentId,
               turno: employee.turno,
               managerId,
               active: true,
@@ -429,7 +450,7 @@ async function main() {
       }
     }
 
-    console.log('\nAvaliacoes');
+    console.log('\nAvaliações');
     const seededEmployees = await db.query.employees.findMany({
       columns: { id: true, registration: true },
     });
@@ -449,7 +470,7 @@ async function main() {
       const checklistItemId = checklistItemIdsByLabel.get(item.label);
 
       if (!checklistItemId) {
-        throw new Error(`Item de checklist nao encontrado: ${item.label}`);
+        throw new Error(`Item de checklist não encontrado: ${item.label}`);
       }
 
       return checklistItemId;
@@ -463,11 +484,11 @@ async function main() {
         const evaluatorId = userIdsByEmail.get(employee.managerEmail);
 
         if (!employeeId) {
-          throw new Error(`Funcionario nao encontrado: ${employee.registration}`);
+          throw new Error(`Funcionário não encontrado: ${employee.registration}`);
         }
 
         if (!evaluatorId) {
-          throw new Error(`Gestor nao encontrado: ${employee.managerEmail}`);
+          throw new Error(`Gestor não encontrado: ${employee.managerEmail}`);
         }
 
         const score = getSeedScore(employeeIndex, dateIndex);
@@ -480,6 +501,7 @@ async function main() {
             evaluationDate,
             score,
             note,
+            employeeDepartment: employee.department,
           })
           .onConflictDoUpdate({
             target: [evaluations.employeeId, evaluations.evaluationDate],
@@ -494,7 +516,7 @@ async function main() {
 
         if (!evaluation) {
           throw new Error(
-            `Nao foi possivel criar avaliacao: ${employee.registration} em ${evaluationDate}`,
+            `Não foi possível criar avaliação: ${employee.registration} em ${evaluationDate}`,
           );
         }
 
@@ -516,15 +538,15 @@ async function main() {
 
     const seededDepartments = new Set(testEmployees.map((employee) => employee.department));
 
-    console.log(`  ${evaluationsCount} avaliacoes em ${evaluationDates.length} datas`);
+    console.log(`  ${evaluationsCount} avaliações em ${evaluationDates.length} datas`);
 
-    console.log('\nConcluido');
-    console.log(`   Usuarios do sistema: ${usersToSeed.length}`);
+    console.log('\nConcluído');
+    console.log(`   Usuários do sistema: ${usersToSeed.length}`);
     console.log(
-      `   Funcionarios:        ${testEmployees.length} em ${seededDepartments.size} setores`,
+      `   Funcionários:        ${testEmployees.length} em ${seededDepartments.size} setores`,
     );
-    console.log(`   Avaliacoes:          ${evaluationsCount} em ${evaluationDates.length} datas`);
-    console.log(`   Senha padrao:        ${DEFAULT_PASSWORD}\n`);
+    console.log(`   Avaliações:          ${evaluationsCount} em ${evaluationDates.length} datas`);
+    console.log(`   Senha padrão:        ${DEFAULT_PASSWORD}\n`);
   } finally {
     await pool.end();
   }

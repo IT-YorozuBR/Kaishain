@@ -3,12 +3,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   createUserSchema,
   updateUserSchema,
@@ -19,9 +26,11 @@ import type { UserActionState } from '@/server/actions/users';
 
 type UserFormValues = z.input<typeof createUserSchema> & { active?: boolean };
 type UserFormOutput = z.output<typeof createUserSchema> & { active?: boolean };
+type Department = { id: string; name: string };
 
 type UserFormProps = {
   allowedRoles: UserRoleValue[];
+  departments: Department[];
   defaultValues?: Partial<UserFormValues>;
   showActive?: boolean;
   action: (data: unknown) => Promise<UserActionState>;
@@ -33,6 +42,7 @@ function valueOrEmpty(value: string | null | undefined) {
 
 export function UserForm({
   allowedRoles,
+  departments,
   defaultValues,
   showActive = false,
   action,
@@ -43,6 +53,8 @@ export function UserForm({
     register,
     handleSubmit,
     setError,
+    setValue,
+    control,
     formState: { errors },
   } = useForm<UserFormValues, unknown, UserFormOutput>({
     resolver: zodResolver(showActive ? updateUserSchema : createUserSchema),
@@ -54,6 +66,8 @@ export function UserForm({
       active: defaultValues?.active ?? true,
     },
   });
+
+  const department = useWatch({ control, name: 'department' });
 
   function onSubmit(data: UserFormOutput) {
     startTransition(async () => {
@@ -108,7 +122,7 @@ export function UserForm({
 
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="role">Role</Label>
+          <Label htmlFor="role">Perfil</Label>
           <select
             id="role"
             {...register('role')}
@@ -125,7 +139,29 @@ export function UserForm({
 
         <div className="grid gap-2">
           <Label htmlFor="department">Departamento</Label>
-          <Input id="department" {...register('department')} />
+          <Select
+            value={department || 'none'}
+            onValueChange={(value) => {
+              const next = value && value !== 'none' ? value : '';
+              setValue('department', next, { shouldDirty: true, shouldValidate: true });
+            }}
+          >
+            <SelectTrigger
+              id="department"
+              className="w-full"
+              aria-invalid={Boolean(errors.department)}
+            >
+              <SelectValue placeholder="Selecione um departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Sem departamento</SelectItem>
+              {departments.map((departmentOption) => (
+                <SelectItem key={departmentOption.id} value={departmentOption.name}>
+                  {departmentOption.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.department ? (
             <p className="text-destructive text-sm">{errors.department.message}</p>
           ) : null}
@@ -135,7 +171,7 @@ export function UserForm({
       {showActive ? (
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" className="accent-primary h-4 w-4" {...register('active')} />
-          Usuario ativo
+          Usuário ativo
         </label>
       ) : null}
 

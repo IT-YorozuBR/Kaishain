@@ -8,11 +8,8 @@ import { EvaluationsHistoryTable } from '@/components/tables/EvaluationsHistoryT
 import { buttonVariants } from '@/components/ui/button';
 import { getCurrentUser } from '@/lib/auth';
 import { listEvaluationHistoryAction } from '@/server/actions/evaluation-history';
-import {
-  listActiveDepartments,
-  listEvaluationEmployeesForUser,
-  listEvaluationManagersForUser,
-} from '@/server/services/employees';
+import { listDepartments } from '@/server/services/departments';
+import { listEvaluationManagersForUser } from '@/server/services/employees';
 
 type RhHistoricoPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -52,38 +49,38 @@ export default async function RhHistoricoPage({ searchParams }: RhHistoricoPageP
   }
 
   const params = await searchParams;
-  const [history, employees, evaluators, departments] = await Promise.all([
+  const [history, evaluators, departments] = await Promise.all([
     listEvaluationHistoryAction({
       employeeId: getParam(params, 'employeeId'),
+      employeeSearch: getParam(params, 'employeeSearch'),
       evaluatorId: getParam(params, 'evaluatorId'),
       dateFrom: getParam(params, 'dateFrom'),
       dateTo: getParam(params, 'dateTo'),
-      department: getParam(params, 'department'),
+      departmentId: getParam(params, 'departmentId'),
       page: getParam(params, 'page'),
     }),
-    listEvaluationEmployeesForUser(user),
     listEvaluationManagersForUser(user),
-    listActiveDepartments(),
+    listDepartments(true),
   ]);
 
   return (
     <AppShell>
       <div className="grid gap-6">
         <PageHeader
-          title="Historico de avaliacoes"
-          description="Consulte avaliacoes de todos os gestores."
+          title="Histórico de avaliações"
+          description="Consulte avaliações de todos os gestores."
         />
 
         <EvaluationHistoryFilters
-          employees={employees}
           evaluators={evaluators}
           departments={departments}
           defaultValues={{
             employeeId: getParam(params, 'employeeId'),
+            employeeSearch: getParam(params, 'employeeSearch'),
             evaluatorId: getParam(params, 'evaluatorId'),
             dateFrom: getParam(params, 'dateFrom'),
             dateTo: getParam(params, 'dateTo'),
-            department: getParam(params, 'department'),
+            departmentId: getParam(params, 'departmentId'),
           }}
         />
 
@@ -91,7 +88,7 @@ export default async function RhHistoricoPage({ searchParams }: RhHistoricoPageP
 
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <span className="text-muted-foreground">
-            Pagina {history.page} de {history.totalPages} - {history.total} avaliacao(oes)
+            Página {history.page} de {history.totalPages} - {history.total} avaliação(ões)
           </span>
           <div className="flex gap-2">
             <Link
@@ -106,7 +103,7 @@ export default async function RhHistoricoPage({ searchParams }: RhHistoricoPageP
               className={buttonVariants({ variant: 'outline', size: 'sm' })}
               aria-disabled={history.page >= history.totalPages}
             >
-              Proxima
+              Próxima
             </Link>
           </div>
         </div>

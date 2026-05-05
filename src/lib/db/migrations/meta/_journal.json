@@ -50,6 +50,27 @@
       "when": 1777567933210,
       "tag": "0006_classy_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1778040000000,
+      "tag": "0007_departments",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778040001000,
+      "tag": "0008_drop_employee_department_text",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1778040002000,
+      "tag": "0009_add_evaluation_department_snapshot",
+      "breakpoints": true
     }
   ]
 }

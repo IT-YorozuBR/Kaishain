@@ -19,7 +19,7 @@ export type EmployeeActionState = {
     email?: string[];
     registration?: string[];
     position?: string[];
-    department?: string[];
+    departmentId?: string[];
     managerId?: string[];
     equipamentos?: string[];
   };
@@ -29,7 +29,7 @@ export async function createEmployeeAction(data: unknown): Promise<EmployeeActio
   const user = await getCurrentUser();
 
   if (!user) {
-    return { error: 'Sessao expirada. Entre novamente.' };
+    return { error: 'Sessão expirada. Entre novamente.' };
   }
 
   const parsed = createEmployeeSchema.safeParse(data);
@@ -62,7 +62,7 @@ export async function updateEmployeeAction(
   const user = await getCurrentUser();
 
   if (!user) {
-    return { error: 'Sessao expirada. Entre novamente.' };
+    return { error: 'Sessão expirada. Entre novamente.' };
   }
 
   const parsed = updateEmployeeSchema.safeParse(data);
@@ -94,7 +94,7 @@ export async function deactivateEmployeeAction(id: string): Promise<{ error?: st
   const user = await getCurrentUser();
 
   if (!user) {
-    return { error: 'Sessao expirada. Entre novamente.' };
+    return { error: 'Sessão expirada. Entre novamente.' };
   }
 
   try {

@@ -13,20 +13,19 @@ type Option = {
 };
 
 type EvaluationHistoryFiltersProps = {
-  employees: Option[];
   evaluators?: Option[];
-  departments?: string[];
+  departments?: Option[];
   defaultValues: {
     employeeId?: string;
+    employeeSearch?: string;
     evaluatorId?: string;
     dateFrom?: string;
     dateTo?: string;
-    department?: string;
+    departmentId?: string;
   };
 };
 
 export function EvaluationHistoryFilters({
-  employees,
   evaluators = [],
   departments = [],
   defaultValues,
@@ -55,20 +54,14 @@ export function EvaluationHistoryFilters({
       method="get"
     >
       <div className="grid gap-1">
-        <Label htmlFor="employeeId">Funcionario</Label>
-        <select
-          id="employeeId"
-          name="employeeId"
-          defaultValue={defaultValues.employeeId ?? ''}
-          className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm"
-        >
-          <option value="">Todos</option>
-          {employees.map((employee) => (
-            <option key={employee.id} value={employee.id}>
-              {employee.name}
-            </option>
-          ))}
-        </select>
+        <Label htmlFor="employeeSearch">Funcionário</Label>
+        <Input
+          id="employeeSearch"
+          name="employeeSearch"
+          placeholder="Nome, e-mail ou matrícula"
+          defaultValue={defaultValues.employeeSearch ?? ''}
+          className="w-64"
+        />
       </div>
 
       {evaluators.length > 0 ? (
@@ -92,17 +85,17 @@ export function EvaluationHistoryFilters({
 
       {departments.length > 0 ? (
         <div className="grid gap-1">
-          <Label htmlFor="department">Setor</Label>
+          <Label htmlFor="departmentId">Departamento</Label>
           <select
-            id="department"
-            name="department"
-            defaultValue={defaultValues.department ?? ''}
+            id="departmentId"
+            name="departmentId"
+            defaultValue={defaultValues.departmentId ?? ''}
             className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm"
           >
             <option value="">Todos</option>
-            {departments.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
+            {departments.map((department) => (
+              <option key={department.id} value={department.id}>
+                {department.name}
               </option>
             ))}
           </select>
@@ -115,7 +108,7 @@ export function EvaluationHistoryFilters({
       </div>
 
       <div className="grid gap-1">
-        <Label htmlFor="dateTo">Ate</Label>
+        <Label htmlFor="dateTo">Até</Label>
         <Input id="dateTo" name="dateTo" type="date" defaultValue={defaultValues.dateTo} />
       </div>
 

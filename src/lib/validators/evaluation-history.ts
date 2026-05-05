@@ -10,7 +10,7 @@ const optionalDate = z
   .string()
   .trim()
   .transform((value) => (value === '' ? undefined : value))
-  .pipe(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data invalida.').optional());
+  .pipe(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.').optional());
 
 const optionalPositiveInt = z
   .string()
@@ -18,18 +18,20 @@ const optionalPositiveInt = z
   .transform((value) => (value === '' ? undefined : Number(value)))
   .pipe(z.number().int().positive().optional());
 
-const optionalString = z
+const optionalSearch = z
   .string()
   .trim()
+  .max(255)
   .transform((value) => (value === '' ? undefined : value))
-  .pipe(z.string().max(255).optional());
+  .optional();
 
 export const evaluationHistoryFiltersSchema = z.object({
   employeeId: optionalUuid.optional(),
+  employeeSearch: optionalSearch,
   evaluatorId: optionalUuid.optional(),
   dateFrom: optionalDate.optional(),
   dateTo: optionalDate.optional(),
-  department: optionalString.optional(),
+  departmentId: optionalUuid.optional(),
   page: optionalPositiveInt.default(1),
   pageSize: optionalPositiveInt.default(20),
 });

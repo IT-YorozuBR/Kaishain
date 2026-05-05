@@ -1,21 +1,22 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { DEPARTMENTS } from '@/lib/validators/employee';
 
 type Manager = { id: string; name: string };
+type Department = { id: string; name: string };
 
 type EmployeeFiltersProps = {
   managers: Manager[];
+  departments: Department[];
   defaultValues: {
     search?: string;
     status?: string;
     managerId?: string;
-    department?: string;
+    departmentId?: string;
   };
 };
 
-export function EmployeeFilters({ managers, defaultValues }: EmployeeFiltersProps) {
+export function EmployeeFilters({ managers, departments, defaultValues }: EmployeeFiltersProps) {
   return (
     <form
       className="flex flex-wrap items-end gap-3 rounded-xl border bg-card p-4 shadow-sm"
@@ -65,17 +66,17 @@ export function EmployeeFilters({ managers, defaultValues }: EmployeeFiltersProp
       </div>
 
       <div className="grid gap-1">
-        <Label htmlFor="department">Departamento</Label>
+        <Label htmlFor="departmentId">Departamento</Label>
         <select
-          id="department"
-          name="department"
-          defaultValue={defaultValues.department ?? ''}
+          id="departmentId"
+          name="departmentId"
+          defaultValue={defaultValues.departmentId ?? ''}
           className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm"
         >
           <option value="">Todos os departamentos</option>
-          {DEPARTMENTS.map((dept) => (
-            <option key={dept} value={dept}>
-              {dept}
+          {departments.map((department) => (
+            <option key={department.id} value={department.id}>
+              {department.name}
             </option>
           ))}
         </select>
